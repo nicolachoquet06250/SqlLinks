@@ -1,7 +1,7 @@
 <?php
 
 class RequestConnexion {
-	private $cnx;
+	private $cnx, $debug=false;
 
 	/**
 	 * RequestConnexion constructor.
@@ -34,12 +34,25 @@ class RequestConnexion {
 	 * @throws Exception
 	 */
 	function __call($name, $arguments=false) {
-		if($this->cnx->$name()) {
-			if($arguments) {
-				$this->cnx->$name($arguments);
-			}
-			return $this->cnx->$name();
-		}
-		throw new Exception('La propriété '.get_class($this->cnx).'::$'.$name.' n\'existe pas !');
+	    if($name != 'debug' && $name != 'is_debug') {
+            if ($this->cnx->$name()) {
+                if ($arguments) {
+                    $this->cnx->$name($arguments);
+                }
+                return $this->cnx->$name();
+            }
+            throw new Exception('La propriété ' . get_class($this->cnx) . '::$' . $name . ' n\'existe pas !');
+        }
+        else {
+	        $this->$name();
+        }
 	}
+
+    public function debug()
+    {
+        $this->debug = true;
+    }
+    public function is_debug() {
+	    return $this->debug;
+    }
 }

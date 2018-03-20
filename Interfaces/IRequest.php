@@ -179,4 +179,10 @@ interface IRequest {
 	 * @return array|boolean
 	 */
 	function query();
+
+    /**
+     * @param array $values
+     * @return IRequest
+     */
+	function values(array $values):IRequest;
 }

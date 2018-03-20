@@ -8,17 +8,24 @@ class Mysql implements IRequest {
 			$read=false,
 			$write=false;
 
-	/**
-	 * {@inheritdoc}
-	 */
+    /**
+     * {@inheritdoc}
+     * @throws Exception
+     */
 	public function __construct(RequestConnexion $connexion) {
 		if (class_exists('mysqli')) {
-			$this->mysqli = new mysqli(
-				$connexion->host(),
-				$connexion->user(),
-				$connexion->password(),
-				$connexion->database()
-			);
+		    $is_debug = $connexion->is_debug();
+		    if(!$is_debug) {
+                $this->mysqli = new mysqli(
+                    $connexion->host(),
+                    $connexion->user(),
+                    $connexion->password(),
+                    $connexion->database()
+                );
+            }
+            else {
+		        $this->mysqli = false;
+            }
 		}
 		else {
 			throw new Exception('Vous devez installer l\'extension \'php-mysql\' !');
@@ -86,6 +93,7 @@ class Mysql implements IRequest {
 	function insert():IRequest {
 		$this->write();
 		$this->request = 'INSERT ';
+		return $this;
 	}
 
 	/**
@@ -141,6 +149,7 @@ class Mysql implements IRequest {
 	 */
 	function into($table):IRequest {
 		$this->request .= 'INTO `'.$table.'` ';
+		return $this;
 	}
 
 	/**
@@ -343,4 +352,54 @@ class Mysql implements IRequest {
 		$this->last_request = $this->request;
 		return true;
 	}
+
+	/**
+     * {@inheritdoc}
+     */
+	function values(array $values): IRequest
+    {
+        $str = '(';
+        $tmp = [];
+        foreach ($values as $key => $val) {
+            if(gettype($val) == 'array') {
+                foreach ($val as $item => $value) {
+                    $tmp[] = '`'.$item.'`';
+                }
+            }
+            else {
+                $tmp[] = '`'.$key.'`';
+            }
+
+        }
+        $str .= implode(', ', $tmp);
+        $str .= ')';
+        $str .= ' VALUES ';
+        $tmp = [];
+        $step1 = true;
+        foreach ($values as $key => $val) {
+            if(gettype($val) == 'array') {
+                $step1 = true;
+                $tmp2 = [];
+                foreach ($val as $item => $value) {
+                    $tmp2[] = '"'.$value.'"';
+                }
+                $tmp[] = '('.implode(', ', $tmp2).')';
+            }
+            else {
+                $step1 = false;
+                $tmp[] = '`'.$val.'`';
+            }
+
+        }
+        if($step1) {
+            $str .= ''.implode(', ', $tmp).'';
+        }
+        else {
+            $str .= '('.implode(', ', $tmp).')';
+        }
+
+        $str .= '';
+        $this->request .= $str;
+        return $this;
+    }
 }
