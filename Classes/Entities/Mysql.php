@@ -2,17 +2,22 @@
 
 class Mysql implements IRequest {
 
+	/**
+	 * @var mysqli $mysqli
+	 */
 	private $mysqli,
 			$last_request,
 			$request,
 			$read=false,
-			$write=false;
+			$write=false,
+			$cnx;
 
     /**
      * {@inheritdoc}
      * @throws Exception
      */
 	public function __construct(RequestConnexion $connexion) {
+		$this->cnx = $connexion;
 		if (class_exists('mysqli')) {
 		    $is_debug = $connexion->is_debug();
 		    if(!$is_debug) {
@@ -102,6 +107,7 @@ class Mysql implements IRequest {
 	function delete(array $to_delete):IRequest {
 		$this->write();
 		// TODO: Implement delete() method.
+		return $this;
 	}
 
 	/**
@@ -110,6 +116,7 @@ class Mysql implements IRequest {
 	function update(array $to_update):IRequest {
 		$this->write();
 		// TODO: Implement update() method.
+		return $this;
 	}
 
 	/**
@@ -118,6 +125,7 @@ class Mysql implements IRequest {
 	function show():IRequest {
 		$this->read();
 		$this->request = 'SHOW ';
+		return $this;
 	}
 
 	/**
@@ -126,6 +134,7 @@ class Mysql implements IRequest {
 	function create($table):IRequest {
 		$this->write();
 		// TODO: Implement create() method.
+		return $this;
 	}
 
 	/**
@@ -134,6 +143,7 @@ class Mysql implements IRequest {
 	function drop($table):IRequest {
 		$this->write();
 		// TODO: Implement drop() method.
+		return $this;
 	}
 
 	/**
@@ -142,6 +152,7 @@ class Mysql implements IRequest {
 	function alter($table):IRequest {
 		$this->write();
 		// TODO: Implement alter() method.
+		return $this;
 	}
 
 	/**
@@ -348,9 +359,15 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function query() {
-		$this->mysqli->query($this->request);
+		$is_debug = $this->cnx->is_debug();
+		if($is_debug) {
+			return true;
+		}
+		if($this->is_read()) {
+			return '';
+		}
 		$this->last_request = $this->request;
-		return true;
+		return $this->mysqli->query($this->request);
 	}
 
 	/**
@@ -362,9 +379,10 @@ class Mysql implements IRequest {
         $tmp = [];
         foreach ($values as $key => $val) {
             if(gettype($val) == 'array') {
-                foreach ($val as $item => $value) {
+            	foreach ($val as $item => $value) {
                     $tmp[] = '`'.$item.'`';
                 }
+                break;
             }
             else {
                 $tmp[] = '`'.$key.'`';
@@ -381,13 +399,13 @@ class Mysql implements IRequest {
                 $step1 = true;
                 $tmp2 = [];
                 foreach ($val as $item => $value) {
-                    $tmp2[] = '"'.$value.'"';
+                	$tmp2[] = gettype($value) == 'string' ? '"'.$value.'"' : $value;
                 }
                 $tmp[] = '('.implode(', ', $tmp2).')';
             }
             else {
                 $step1 = false;
-                $tmp[] = '`'.$val.'`';
+                $tmp[] = gettype($val) == 'string' ? '"'.$val.'"' : $val;
             }
 
         }
