@@ -16,12 +16,45 @@ class Mysql implements IRequest {
             $query_result,
             $last_query_result=false;
 
+    /**
+     * @Description : For like() method
+     */
     public const START = 1;
 	public const END = 2;
 	public const MIDDLE = 3;
 
-	public const TABLE = 1;
-	public const DATABASE = 2;
+    /**
+     * @Description : For has() method
+     */
+	public const TBL = 1;
+	public const DB = 2;
+
+    /**
+     * @Description : for create table and database
+     */
+    public const TABLE = 'TABLE';
+    public const DATABASE = 'DATABASE';
+	public const IF_NOT_EXISTS = 'IF NOT EXISTS';
+	public const IF_EXISTS = 'IF EXISTS';
+
+    /**
+     * @Description : SQL Types
+     */
+	public const VARCHAR = 'VARCHAR';
+	public const CHAR = 'CHAR';
+	public const TEXT = 'TEXT';
+	public const INT = 'INT';
+	public const DATETIME = 'DATETIME';
+	public const DATE = 'DATE';
+	public const TIMESTAMP = 'TIMESTAMP';
+	public const TIME = 'TIME';
+	public const YEAR = 'YEAR';
+
+	public const PRIMARY_KEY = 'PRIMARY KEY';
+	public const DEFAULT = 'DEFAULT';
+	public const NOT_NULL = 'NOT NULL';
+	public const AUTO_INCREMENT = 'AUTO_INCREMENT';
+	public const KEY = 'KEY';
 
     /**
      * {@inheritdoc}
@@ -142,9 +175,12 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function create($table):IRequest {
+	function create($type, $name):IRequest {
 		$this->write();
-		// TODO: Implement create() method.
+		$this->request = "CREATE {$type} ".self::IF_NOT_EXISTS." {$name} ";
+		if($type === self::TABLE) {
+		    $this->request .= '(';
+        }
 		return $this;
 	}
 
@@ -153,7 +189,7 @@ class Mysql implements IRequest {
 	 */
 	function drop($table):IRequest {
 		$this->write();
-		// TODO: Implement drop() method.
+		$this->request = "DROP TABLE {$table}";
 		return $this;
 	}
 
@@ -225,14 +261,6 @@ class Mysql implements IRequest {
 		return $this;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
-	function whene():IRequest {
-		// TODO: Implement whene() method.
-		return $this;
-	}
-
     /**
      * {@inheritdoc}
      */
@@ -240,11 +268,21 @@ class Mysql implements IRequest {
     {
         $tmp = [];
         foreach ($to_set as $item => $value) {
-            $value = gettype($value) === 'string' ? "'{$value}'" : $value;
-
-            $tmp[] = "`{$item}`={$value}";
+            if (!strstr($this->request(), 'CREATE '.self::TABLE)) {
+                $value = gettype($value) === 'string' ? "'{$value}'" : $value;
+                $tmp[] = "`{$item}`={$value}";
+            }
+            else {
+                $tmp[] = "`{$item}` {$value}";
+            }
         }
-        $this->request .= 'SET '.implode(', ', $tmp).' ';
+        if (!strstr($this->request(), 'CREATE '.self::TABLE)) {
+            $this->request .= 'SET ';
+        }
+        $this->request .= implode(', ', $tmp).' ';
+        if (strstr($this->request(), 'CREATE '.self::TABLE)) {
+            $this->request .= ')';
+        }
         return $this;
     }
 
@@ -381,7 +419,7 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function has($name, int $type = self::TABLE):bool{
+	function has($name, int $type = self::TBL):bool{
 		// TODO: Implémenter la méthode has() pour faire en sorte de savoir si une table ou une base de donnée existe.
 	    return true;
 	}

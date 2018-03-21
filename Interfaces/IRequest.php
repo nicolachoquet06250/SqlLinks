@@ -55,11 +55,12 @@ interface IRequest {
 	 */
 	function show():IRequest ;
 
-	/**
-	 * @param $table
-	 * @return IRequest
-	 */
-	function create($table):IRequest ;
+    /**
+     * @param $type
+     * @param $name
+     * @return IRequest
+     */
+	function create($type, $name):IRequest ;
 
 	/**
 	 * @param $table
@@ -104,10 +105,6 @@ interface IRequest {
 	 * @return IRequest
 	 */
 	function where($where):IRequest ;
-	/**
-	 * @return IRequest
-	 */
-	function whene():IRequest ;
 	/**
      * @param array $array
      * @param int $place
