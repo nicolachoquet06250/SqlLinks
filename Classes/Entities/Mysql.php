@@ -4,13 +4,24 @@ class Mysql implements IRequest {
 
 	/**
 	 * @var mysqli $mysqli
+     * @var array $query_result
+     * @var array$last_query_result
 	 */
 	private $mysqli,
 			$last_request,
 			$request,
 			$read=false,
 			$write=false,
-			$cnx;
+			$cnx,
+            $query_result,
+            $last_query_result=false;
+
+    public const START = 1;
+	public const END = 2;
+	public const MIDDLE = 3;
+
+	public const TABLE = 1;
+	public const DATABASE = 2;
 
     /**
      * {@inheritdoc}
@@ -104,18 +115,18 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function delete(array $to_delete):IRequest {
+	function delete():IRequest {
 		$this->write();
-		// TODO: Implement delete() method.
+		$this->request = 'DELETE ';
 		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function update(array $to_update):IRequest {
+	function update(string $table):IRequest {
 		$this->write();
-		// TODO: Implement update() method.
+		$this->request = "UPDATE {$table} ";
 		return $this;
 	}
 
@@ -167,6 +178,18 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function from($table):IRequest {
+	    if(gettype($table) === 'array') {
+	        $tmp = [];
+            foreach ($table as $item => $value) {
+                if(gettype($item) === 'string') {
+                    $tmp[] = "{$item} {$value}";
+                }
+                else {
+                    $tmp[] = $value;
+                }
+	        }
+	        $table = implode(', ', $tmp);
+        }
 		$this->request .= 'FROM '.$table.' ';
 		return $this;
 	}
@@ -174,24 +197,31 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function where($where):IRequest {
-		$tmp = [];
-		foreach ($where as $key => $w) {
-			if(gettype($key) === 'string') {
-				if (gettype($w) === 'string') {
-					$tmp[] = $key.'="'.$w.'"';
-				} else {
-					$tmp[] = $key.'='.$w;
-				}
-			}
-			else {
-				$tmp[] = $w;
-			}
-		}
-		if(!strstr($this->request(),'WHERE')) {
-			$this->request .= 'WHERE ';
-		}
-		$this->request .= implode(', ', $tmp).' ';
+	function where($where=''):IRequest {
+        if(gettype($where) === 'array' || gettype($where) === 'object') {
+            $tmp = [];
+            foreach ($where as $key => $w) {
+                if (gettype($key) === 'string') {
+                    if (gettype($w) === 'string') {
+                        $tmp[] = $key . '="' . $w . '"';
+                    } else {
+                        $tmp[] = $key . '=' . $w;
+                    }
+                } else {
+                    $tmp[] = $w;
+                }
+            }
+            if (!strstr($this->request(), 'WHERE')) {
+                $this->request .= 'WHERE ';
+            }
+            $this->request .= implode(', ', $tmp) . ' ';
+        }
+        else {
+            if (!strstr($this->request(), 'WHERE')) {
+                $this->request .= 'WHERE ';
+            }
+            $this->request .= $where;
+        }
 		return $this;
 	}
 
@@ -203,11 +233,32 @@ class Mysql implements IRequest {
 		return $this;
 	}
 
-	/**
+    /**
+     * {@inheritdoc}
+     */
+	function set(array $to_set): IRequest
+    {
+        $tmp = [];
+        foreach ($to_set as $item => $value) {
+            $value = gettype($value) === 'string' ? "'{$value}'" : $value;
+
+            $tmp[] = "`{$item}`={$value}";
+        }
+        $this->request .= 'SET '.implode(', ', $tmp).' ';
+        return $this;
+    }
+
+    /**
 	 * {@inheritdoc}
 	 */
-	function on():IRequest {
-		// TODO: Implement on() method.
+	function on($on):IRequest {
+	    if(gettype($on) === 'array') {
+            foreach ($on as $item => $value) {
+                $on = "{$item} = {$value}";
+                break;
+	        }
+        }
+		$this->request .= "ON {$on} ";
 		return $this;
 	}
 
@@ -222,26 +273,42 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function inner_join():IRequest {
-		// TODO: Implement inner_join() method.
+	function inner_join($table):IRequest {
+	    $this->request .= $this->join($table);
 		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function left_join():IRequest {
-		// TODO: Implement left_join() method.
+	function left_join($table):IRequest {
+		$this->request .= $this->join($table, 'left');
 		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function right_join():IRequest {
-		// TODO: Implement right_join() method.
+	function right_join($table):IRequest {
+        $this->request .= $this->join($table, 'right');
 		return $this;
 	}
+
+    /**
+     * @param $table
+     * @param string $sence
+     * @return string
+     */
+	private function join($table, $sence='inner') {
+        if(gettype($table) === 'array') {
+            foreach ($table as $item => $value) {
+                $table = "{$item} {$value}";
+                break;
+            }
+        }
+	    $sence = strtoupper($sence);
+	    return "{$sence} JOIN {$table} ";
+    }
 
 	/**
 	 * {@inheritdoc}
@@ -270,41 +337,87 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function like():IRequest {
-		// TODO: Implement like() method.
+	function like(array $array, int $place = self::MIDDLE):IRequest {
+	    $champ = '';
+	    $valeur = '';
+        foreach ($array as $item => $value) {
+            $champ = $item;
+            $valeur = $value;
+            break;
+        }
+
+	    $this->request .= "{$champ} LIKE ";
+
+		switch ($place) {
+            case self::START:
+                $this->request .= "'{$valeur}%'";
+                break;
+            case self::MIDDLE:
+                $this->request .= "'%{$valeur}%'";
+                break;
+            case self::END:
+                $this->request .= "'%{$valeur}'";
+                break;
+            default:
+                $this->request .= "'%{$valeur}%'";
+                break;
+        }
+        $this->request .= ' ';
 		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function limit(int $limite):IRequest {
-		// TODO: Implement limit() method.
-		return $this;
+	function limit(int $limite, int $offset=0):IRequest {
+	    $this->request .= 'LIMIT ';
+        if($offset !== 0) {
+            $this->request .= $offset.', ';
+        }
+        $this->request .= $limite;
+        return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function has():IRequest {
-		// TODO: Implement has() method.
-		return $this;
+	function has($name, int $type = self::TABLE):bool{
+		// TODO: Implémenter la méthode has() pour faire en sorte de savoir si une table ou une base de donnée existe.
+	    return true;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function order_by():IRequest {
-		// TODO: Implement order_by() method.
-		return $this;
+	function order_by($columns):IRequest {
+		if(gettype($columns) === 'array' || gettype($columns) === 'object') {
+		    $columns = implode(', ', $columns);
+        }
+        if (!strstr($this->request(), 'ORDER BY')) {
+            $this->request .= 'ORDER BY ';
+        }
+        else {
+		    $this->request .= ', ';
+        }
+        $this->request .= $columns.' ';
+        return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function group_by():IRequest {
-		// TODO: Implement group_by() method.
-		return $this;
+	function group_by($columns):IRequest {
+        if(gettype($columns) === 'array' || gettype($columns) === 'object') {
+            $columns = implode(', ', $columns);
+        }
+        if (!strstr($this->request(), 'GROUP BY')) {
+            $this->request .= 'GROUP BY ';
+        }
+        else {
+            $this->request .= ', ';
+        }
+        $this->request .= $columns.' ';
+        return $this;
 	}
 
 	/**
@@ -327,7 +440,7 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function is_null():IRequest {
-		// TODO: Implement is_null() method.
+        $this->request .= 'IS NULL';
 		return $this;
 	}
 
@@ -335,7 +448,7 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function is_not_null():IRequest {
-		// TODO: Implement is_not_null() method.
+		$this->request .= 'IS NOT NULL';
 		return $this;
 	}
 
@@ -343,7 +456,6 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function last_request():string {
-		// TODO: Implement last_request() method.
 		return $this->last_request;
 	}
 
@@ -351,7 +463,6 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function request():string {
-		// TODO: Implement request() method.
 		return $this->request;
 	}
 
@@ -361,14 +472,42 @@ class Mysql implements IRequest {
 	function query() {
 		$is_debug = $this->cnx->is_debug();
 		if($is_debug) {
-			return true;
+			return false;
 		}
 		if($this->is_read()) {
-			return '';
+		    $req = $this->mysqli->query($this->request());
+		    $result = [];
+		    while ($data = $req->fetch_assoc()) {
+		        $result[] = $data;
+            }
+
+            if($this->query_result === false) {
+                $this->query_result = $result;
+		    }
+            else {
+                $this->last_query_result = $this->query_result;
+                $this->query_result = $result;
+            }
+
+		    return $this->query_result;
 		}
 		$this->last_request = $this->request;
 		return $this->mysqli->query($this->request);
 	}
+
+    /**
+     * {@inheritdoc}
+     */
+	function get_last_query_result() {
+	    return $this->last_query_result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function get_query_result() :array {
+	    return $this->query_result;
+    }
 
 	/**
      * {@inheritdoc}
@@ -419,5 +558,39 @@ class Mysql implements IRequest {
         $str .= '';
         $this->request .= $str;
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function asc(): IRequest
+    {
+        $this->request .= 'ASC ';
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function desc(): IRequest
+    {
+        $this->request .= 'DESC ';
+        return $this;
+    }
+
+    /**
+     * @param $chaine
+     * @return IRequest
+     */
+    public function md5($chaine):IRequest {
+	    $this->request .= "MD5({$chaine}) ";
+    }
+
+    /**
+     * @param $chaine
+     * @return IRequest
+     */
+    public function sha1($chaine):IRequest {
+        $this->request .= "SHA1({$chaine}) ";
     }
 }

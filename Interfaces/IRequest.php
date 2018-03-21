@@ -40,16 +40,15 @@ interface IRequest {
 	function insert():IRequest ;
 
 	/**
-	 * @param array $to_delete
 	 * @return IRequest
 	 */
-	function delete(array $to_delete):IRequest ;
+	function delete():IRequest ;
 
 	/**
-	 * @param array $to_update
+	 * @param string $table
 	 * @return IRequest
 	 */
-	function update(array $to_update):IRequest ;
+	function update(string $table):IRequest ;
 
 	/**
 	 * @return IRequest
@@ -101,7 +100,7 @@ interface IRequest {
 	function from($table):IRequest ;
 
 	/**
-	 * @param $where
+	 * @param string|array|object $where
 	 * @return IRequest
 	 */
 	function where($where):IRequest ;
@@ -110,27 +109,35 @@ interface IRequest {
 	 */
 	function whene():IRequest ;
 	/**
+     * @param array $array
+     * @param int $place
 	 * @return IRequest
 	 */
-	function like():IRequest ;
+	function like(array $array, int $place):IRequest ;
 
 	/**
 	 * @param int $limite
+     * @param int $offset
 	 * @return IRequest
 	 */
-	function limit(int $limite):IRequest ;
+	function limit(int $limite, int $offset=0):IRequest ;
+
+    /**
+     * @param $name
+     * @param int $type
+     * @return boolean
+     */
+	function has($name, int $type):bool ;
 	/**
+     * @param array|string $comumns
 	 * @return IRequest
 	 */
-	function has():IRequest ;
+	function order_by($comumns):IRequest ;
 	/**
+     * @param array|string $comumns
 	 * @return IRequest
 	 */
-	function order_by():IRequest ;
-	/**
-	 * @return IRequest
-	 */
-	function group_by():IRequest ;
+	function group_by($comumns):IRequest ;
 	/**
 	 * @return IRequest
 	 */
@@ -148,25 +155,35 @@ interface IRequest {
 	 */
 	function is_not_null():IRequest ;
 	/**
+     * @param string|array $on
 	 * @return IRequest
 	 */
-	function on():IRequest ;
+	function on($on):IRequest ;
 	/**
 	 * @return IRequest
 	 */
 	function in():IRequest ;
+    /**
+     * @param array $to_set
+     * @return IRequest
+     */
+	function set(array $to_set):IRequest;
+
+    /**
+     * @param array|string $table
+     * @return IRequest
+     */
+	function inner_join($table):IRequest ;
 	/**
+     * @param array|string $table
 	 * @return IRequest
 	 */
-	function inner_join():IRequest ;
+	function left_join($table):IRequest ;
 	/**
+     * @param array|string $table
 	 * @return IRequest
 	 */
-	function left_join():IRequest ;
-	/**
-	 * @return IRequest
-	 */
-	function right_join():IRequest ;
+	function right_join($table):IRequest ;
 	/**
 	 * @return string
 	 */
@@ -185,4 +202,24 @@ interface IRequest {
      * @return IRequest
      */
 	function values(array $values):IRequest;
+
+    /**
+     * @return array
+     */
+	function get_last_query_result() ;
+
+    /**
+     * @return array
+     */
+	function get_query_result():array ;
+
+    /**
+     * @return IRequest
+     */
+	function asc():IRequest;
+
+    /**
+     * @return IRequest
+     */
+	function desc():IRequest;
 }
