@@ -39,11 +39,32 @@ class Mysql implements IRequest {
 
     /**
      * @Description : SQL Types
+     **/
+
+    /**
+     * @param int $size
+     * @return string
      */
-	public const VARCHAR = 'VARCHAR';
-	public const CHAR = 'CHAR';
+	public static function VARCHAR($size=50) {
+	    return "VARCHAR({$size})";
+    }
+
+    /**
+     * @param string $size
+     * @return string
+     */
+	public static function CHAR($size='') {
+	    return "CHAR({$size})";
+    }
 	public const TEXT = 'TEXT';
-	public const INT = 'INT';
+
+    /**
+     * @param int $size
+     * @return string
+     */
+	public static function INT($size=11) {
+	    return "INT({$size})";
+    }
 	public const DATETIME = 'DATETIME';
 	public const DATE = 'DATE';
 	public const TIMESTAMP = 'TIMESTAMP';
@@ -187,9 +208,9 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function drop($table):IRequest {
+	function drop($type, $name):IRequest {
 		$this->write();
-		$this->request = "DROP TABLE {$table}";
+		$this->request = "DROP {$type} ".self::IF_EXISTS." {$name}";
 		return $this;
 	}
 
@@ -236,6 +257,7 @@ class Mysql implements IRequest {
 	function where($where=''):IRequest {
         if(gettype($where) === 'array' || gettype($where) === 'object') {
             $tmp = [];
+            /** @var array $where */
             foreach ($where as $key => $w) {
                 if (gettype($key) === 'string') {
                     if (gettype($w) === 'string') {
@@ -509,11 +531,16 @@ class Mysql implements IRequest {
 	 */
 	function query() {
 		$is_debug = $this->cnx->is_debug();
+        /**
+         * @var mysqli $mysqli
+         */
+        $mysqli = $this->mysqli;
 		if($is_debug) {
 			return false;
 		}
 		if($this->is_read()) {
-		    $req = $this->mysqli->query($this->request());
+
+		    $req = $mysqli->query($this->request());
 		    $result = [];
 		    while ($data = $req->fetch_assoc()) {
 		        $result[] = $data;
@@ -530,7 +557,7 @@ class Mysql implements IRequest {
 		    return $this->query_result;
 		}
 		$this->last_request = $this->request;
-		return $this->mysqli->query($this->request);
+		return $mysqli->query($this->request);
 	}
 
     /**

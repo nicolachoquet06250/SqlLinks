@@ -62,11 +62,12 @@ interface IRequest {
      */
 	function create($type, $name):IRequest ;
 
-	/**
-	 * @param $table
-	 * @return IRequest
-	 */
-	function drop($table):IRequest ;
+    /**
+     * @param $type
+     * @param $name
+     * @return IRequest
+     */
+	function drop($type, $name):IRequest ;
 
 	/**
 	 * @param $table
