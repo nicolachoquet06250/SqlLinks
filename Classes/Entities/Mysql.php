@@ -71,11 +71,15 @@ class Mysql implements IRequest {
 	public const TIME = 'TIME';
 	public const YEAR = 'YEAR';
 
+    /**
+     * @Description : For keys
+     */
 	public const PRIMARY_KEY = 'PRIMARY KEY';
 	public const DEFAULT = 'DEFAULT';
 	public const NOT_NULL = 'NOT NULL';
 	public const AUTO_INCREMENT = 'AUTO_INCREMENT';
 	public const KEY = 'KEY';
+
 
     /**
      * {@inheritdoc}
@@ -209,8 +213,13 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function drop($type, $name):IRequest {
-		$this->write();
-		$this->request = "DROP {$type} ".self::IF_EXISTS." {$name}";
+	    if(strstr('ALTER', $this->request)) {
+            $this->request .= "DROP {$type} {$name}";
+        }
+        else {
+            $this->write();
+            $this->request = "DROP {$type} ".self::IF_EXISTS." {$name}";
+        }
 		return $this;
 	}
 
@@ -219,9 +228,51 @@ class Mysql implements IRequest {
 	 */
 	function alter($table):IRequest {
 		$this->write();
-		// TODO: Implement alter() method.
+		$this->request .= "ALTER TABLE {$table} ";
 		return $this;
 	}
+
+    /**
+     * @param array $array
+     * @return Mysql
+     */
+    public function add(array $array) {
+        $tmp = [];
+        foreach ($array as $item => $value) {
+            $tmp[] = "{$item} {$value}";
+        }
+
+        $this->request .= 'ADD '.implode(', ', $tmp).' ';
+        return $this;
+    }
+
+    /**
+     * @param array $array
+     * @return Mysql
+     */
+    public function modify(array $array) {
+        $tmp = [];
+	    foreach ($array as $item => $value) {
+            $tmp[] = "{$item} {$value}";
+	    }
+
+	    $this->request .= 'MODIFY '.implode(', ', $tmp).' ';
+        return $this;
+    }
+
+    /**
+     * @param array $array
+     * @return Mysql
+     */
+    public function change(array $array) {
+        $tmp = [];
+        foreach ($array as $item => $value) {
+            $tmp[] = "{$item} {$value}";
+        }
+
+        $this->request .= 'CHANGE '.implode(', ', $tmp).' ';
+        return $this;
+    }
 
 	/**
 	 * {@inheritdoc}
@@ -325,8 +376,14 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function in():IRequest {
-		// TODO: Implement in() method.
+	function in(array $array):IRequest {
+	    $str = [];
+        foreach ($array as $item => $value) {
+            $str[] = "\"{$value}\"";
+	    }
+
+	    $str = implode(', ', $str);
+        $this->request .= "IN ({$str})";
 		return $this;
 	}
 
@@ -374,7 +431,7 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function tables():IRequest {
-		// TODO: Implement tables() method.
+		$this->request .= 'TABLES ';
 		return $this;
 	}
 
@@ -382,15 +439,26 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function databases($schemas = false):IRequest {
-		// TODO: Implement databases() method.
+	    if($schemas) {
+            $this->request .= 'SCHEMAS ';
+        }
+        else {
+            $this->request .= 'DATABASES ';
+        }
+
 		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	function columns():IRequest {
-		// TODO: Implement columns() method.
+	function columns($fields=false):IRequest {
+		if($fields) {
+		    $this->request .= 'FIELDS ';
+        }
+        else {
+		    $this->request .= 'COLUMNS ';
+        }
 		return $this;
 	}
 
@@ -441,10 +509,15 @@ class Mysql implements IRequest {
 	/**
 	 * {@inheritdoc}
 	 */
-	function has($name, int $type = self::TBL):bool{
-		// TODO: Implémenter la méthode has() pour faire en sorte de savoir si une table ou une base de donnée existe.
-	    return true;
-	}
+	/*function has($name, int $type = self::TBL):bool{
+        try {
+            $mysql = new Mysql($this->cnx);
+            $mysql->show()->columns()->from();
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+        return true;
+	}*/
 
 	/**
 	 * {@inheritdoc}

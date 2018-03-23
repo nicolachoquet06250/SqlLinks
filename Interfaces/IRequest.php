@@ -125,7 +125,7 @@ interface IRequest {
      * @param int $type
      * @return boolean
      */
-	function has($name, int $type):bool ;
+	//function has($name, int $type):bool ;
 	/**
      * @param array|string $comumns
 	 * @return IRequest
@@ -157,10 +157,12 @@ interface IRequest {
 	 * @return IRequest
 	 */
 	function on($on):IRequest ;
-	/**
-	 * @return IRequest
-	 */
-	function in():IRequest ;
+
+    /**
+     * @param array $array
+     * @return IRequest
+     */
+	function in(array $array):IRequest ;
     /**
      * @param array $to_set
      * @return IRequest
