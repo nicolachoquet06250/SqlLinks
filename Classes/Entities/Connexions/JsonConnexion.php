@@ -1,10 +1,6 @@
 <?php
 
-class JsonConnexion implements IRequestConnexion
+class JsonConnexion extends ExtendedRequestConnexion
 {
-
-    public function __construct(array $idents)
-    {
-        parent::__construct($idents);
-    }
+	protected	$file = '';
 }

@@ -12,8 +12,8 @@ class RequestConnexion {
 	 */
 	function __construct(array $cnx, $type='mysql') {
 		$classe = ucfirst($type).'Connexion';
-		if(is_file('../Classes/Entities/'.$classe.'.php')) {
-			require_once '../Classes/Entities/'.$classe.'.php';
+		if(is_file('../Classes/Entities/Connexions/'.$classe.'.php')) {
+			require_once '../Classes/Entities/Connexions/'.$classe.'.php';
 			if (class_exists($classe)) {
 				$this->cnx = new $classe($cnx);
 				if (!$this->cnx instanceof IRequestConnexion) {

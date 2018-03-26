@@ -8,7 +8,7 @@
 				'password' => '2669NICOLAS2107',
 				'database' => 'nicolas-choquet_sociallinks'
 			]);
-		//$cnx->debug();
+		$cnx->debug();
 
 		$mysql = Request::getIRequest($cnx);
 

@@ -2,13 +2,20 @@
 
 class Json implements IRequest
 {
+	private	$directory_database,
+			$request_array = [];
 
+	private $read = false,
+			$write = false;
     /**
      * {@inheritdoc}
      */
-    public function __construct(RequestConnexion $connexion)
-    {
-        parent::__construct($connexion);
+    public function __construct(RequestConnexion $connexion) {
+		$this->directory_database = $connexion->file()[0];
+
+		if(!is_dir($this->directory_database)):
+			mkdir($this->directory_database,0777, true);
+		endif;
     }
 
     /**
@@ -16,7 +23,9 @@ class Json implements IRequest
      */
     function read()
     {
-        // TODO: Implement read() method.
+		$this->read = true;
+		$this->write = false;
+		$this->request_array = [];
     }
 
     /**
@@ -24,7 +33,9 @@ class Json implements IRequest
      */
     function write()
     {
-        // TODO: Implement write() method.
+        $this->write = true;
+        $this->read = false;
+        $this->request_array = [];
     }
 
     /**
@@ -32,7 +43,7 @@ class Json implements IRequest
      */
     function is_read(): bool
     {
-        // TODO: Implement is_read() method.
+        return $this->read;
     }
 
     /**
@@ -40,7 +51,7 @@ class Json implements IRequest
      */
     function is_write(): bool
     {
-        // TODO: Implement is_write() method.
+        return $this->write;
     }
 
     /**
@@ -48,7 +59,13 @@ class Json implements IRequest
      */
     function select(array $selected = []): IRequest
     {
-        // TODO: Implement select() method.
+    	$this->read();
+    	$this->request_array['method'] = 'SELECT';
+    	if(empty($selected)) {
+    		$selected = '*';
+		}
+    	$this->request_array['selected'] = $selected;
+        return $this;
     }
 
     /**
@@ -56,7 +73,9 @@ class Json implements IRequest
      */
     function insert(): IRequest
     {
-        // TODO: Implement insert() method.
+		$this->write();
+		$this->request_array['method'] = 'INSERT';
+		return $this;
     }
 
     /**
@@ -64,7 +83,9 @@ class Json implements IRequest
      */
     function delete(): IRequest
     {
-        // TODO: Implement delete() method.
+		$this->write();
+		$this->request_array['method'] = 'DELETE';
+		return $this;
     }
 
     /**
@@ -72,7 +93,10 @@ class Json implements IRequest
      */
     function update(string $table): IRequest
     {
-        // TODO: Implement update() method.
+		$this->write();
+		$this->request_array['method'] = 'UPDATE';
+		$this->request_array['table'] = $table;
+		return $this;
     }
 
     /**
@@ -80,7 +104,9 @@ class Json implements IRequest
      */
     function show(): IRequest
     {
-        // TODO: Implement show() method.
+		$this->read();
+		$this->request_array['method'] = 'SHOW';
+		return $this;
     }
 
     /**
@@ -88,7 +114,11 @@ class Json implements IRequest
      */
     function create($type, $name): IRequest
     {
-        // TODO: Implement create() method.
+		$this->write();
+		$this->request_array['method'] = 'CREATE';
+		$this->request_array['selected'] = $type;
+		$this->request_array['name_created'] = $name;
+		return $this;
     }
 
     /**
@@ -96,7 +126,11 @@ class Json implements IRequest
      */
     function drop($type, $name): IRequest
     {
-        // TODO: Implement drop() method.
+		$this->read();
+		$this->request_array['method'] = 'DROP';
+		$this->request_array['type'] = $type;
+		$this->request_array['name_droped'] = $name;
+		return $this;
     }
 
     /**
@@ -104,7 +138,10 @@ class Json implements IRequest
      */
     function alter($table): IRequest
     {
-        // TODO: Implement alter() method.
+		$this->read();
+		$this->request_array['method'] = 'ALTER';
+		$this->request_array['table'] = $table;
+		return $this;
     }
 
     /**
@@ -112,7 +149,7 @@ class Json implements IRequest
      */
     function tables(): IRequest
     {
-        // TODO: Implement tables() method.
+        return $this;
     }
 
     /**
@@ -120,7 +157,7 @@ class Json implements IRequest
      */
     function databases($schemas = false): IRequest
     {
-        // TODO: Implement databases() method.
+        return $this;
     }
 
     /**
@@ -144,7 +181,12 @@ class Json implements IRequest
      */
     function from($table): IRequest
     {
-        // TODO: Implement from() method.
+    	if(is_file($this->directory_database.'/'.$table)) {
+			$this->request_array['table'] = $table;
+		}
+        else {
+			throw new Exception('La table `'.$table.'` n\'existe pas.');
+		}
     }
 
     /**
@@ -288,7 +330,7 @@ class Json implements IRequest
      */
     function query()
     {
-        // TODO: Implement query() method.
+        var_dump($this->request_array);
     }
 
     /**
@@ -320,7 +362,7 @@ class Json implements IRequest
      */
     function asc(): IRequest
     {
-        // TODO: Implement asc() method.
+        $this->request_array['order'] = 'asc';
     }
 
     /**
@@ -328,6 +370,6 @@ class Json implements IRequest
      */
     function desc(): IRequest
     {
-        // TODO: Implement desc() method.
+        $this->request_array['order'] = 'desc';
     }
 }

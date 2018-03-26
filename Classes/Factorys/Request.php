@@ -13,8 +13,8 @@ class Request {
 	 */
 	public static function getIRequest(RequestConnexion $connexion, $type='mysql') {
 		$classe = ucfirst($type);
-		if(is_file('../Classes/Entities/'.$classe.'.php')) {
-			require_once '../Classes/Entities/'.$classe.'.php';
+		if(is_file('../Classes/Entities/Requests/'.$classe.'.php')) {
+			require_once '../Classes/Entities/Requests/'.$classe.'.php';
 			if (class_exists($classe)) {
 				self::$request = new $classe($connexion);
 				if (!self::$request instanceof IRequest) {
