@@ -31,6 +31,7 @@
 		$jsondb->query();
 
 		$jsondb->alter('toto')->add(['ecole' => ['type' => 'TEXT', 'default' => 'CampusID']])->query();
+		var_dump($jsondb->decode('{"test": "voila"}'));
 
 		/*$jsondb->show()->tables();
 

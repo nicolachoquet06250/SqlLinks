@@ -1,6 +1,6 @@
 <?php
 
-class Json implements IRequest
+class Json extends DatabaseFiles implements IRequest
 {
 	private	$directory_database,
 			$request_array = [],
