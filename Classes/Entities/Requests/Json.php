@@ -412,16 +412,12 @@ class Json implements IRequest
     function query()
     {
     	switch ($this->request_array['method']) {
-			case self::DELETE:
-			case self::UPDATE:
-			case self::ALTER:
+			case self::ALTER	:
 				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
 				$all_table = json_decode($all_table);
 				$header = $all_table->header;
 				if($this->request_array['action'] === 'add') {
 					foreach ($this->request_array['set'] as $item => $value) {
-						var_dump($item);
-						var_dump($value);
 						$head = [
 							'champ' => $item,
 							'type' => $value['type']
@@ -450,13 +446,13 @@ class Json implements IRequest
 					return true;
 				}
 				return false;
-			case self::DROP:
+			case self::DROP		:
 				unlink($this->directory_database.'/'.$this->request_array['name_droped'].'.json');
 				if(is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
 					return false;
 				}
 				return true;
-			case self::CREATE:
+			case self::CREATE	:
 				if($this->request_array['selected'] === self::TABLE) {
 					if (!file_exists($this->directory_database.'/'.$this->request_array['name_created'].'.json')) {
 						$f = fopen($this->directory_database.'/'.$this->request_array['name_created'].'.json', 'w+');
@@ -473,7 +469,7 @@ class Json implements IRequest
 					throw new Exception('Vous utilisez déja une base de données');
 				}
 				return true;
-			case self::INSERT:
+			case self::INSERT	:
 				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
 				$all_table = json_decode($all_table);
 				$header = $all_table->header;
@@ -494,7 +490,7 @@ class Json implements IRequest
 				fclose($f);
 
 				return true;
-			case self::SHOW:
+			case self::SHOW		:
 				$directory = opendir($this->directory_database);
 				$tmp = [];
 				while (($dir = readdir($directory)) !== false) {
@@ -504,16 +500,18 @@ class Json implements IRequest
 				}
 
 				return $tmp;
-			case self::SELECT:
+			case self::SELECT	:
 				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
 				$all_table = json_decode($all_table);
 
 				return $all_table->datas;
+			case self::DELETE	:
+			case self::UPDATE	:
 			default:
 				break;
 		}
     	$this->last_request_array = $this->request_array;
-        //var_dump($this->request_array);
+        var_dump($this->request_array);
     }
 
     /**
