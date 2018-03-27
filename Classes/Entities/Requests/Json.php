@@ -214,6 +214,7 @@ class Json implements IRequest
 		else {
 			throw new Exception('La table `'.$table.'` n\'existe pas.');
 		}
+		return $this;
     }
 
     /**
@@ -401,21 +402,22 @@ class Json implements IRequest
     function query()
     {
     	switch ($this->request_array['method']) {
-			case self::SELECT:
-			case self::INSERT:
 			case self::DELETE:
 			case self::UPDATE:
 			case self::ALTER:
 			case self::DROP:
-			case self::SHOW:
-				break;
+				unlink($this->directory_database.'/'.$this->request_array['name_droped'].'.json');
+				if(is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
+					return false;
+				}
+				return true;
 			case self::CREATE:
 				if($this->request_array['selected'] === self::TABLE) {
 					if (!file_exists($this->directory_database.'/'.$this->request_array['name_created'].'.json')) {
 						$f = fopen($this->directory_database.'/'.$this->request_array['name_created'].'.json', 'w+');
 						$tmp = [];
 						foreach ($this->request_array['set'] as $item => $value) {
-							$tmp[] = "{ \"champ\": \"{$item}\", \"type\": \"{$value}\" }";
+							$tmp[] = "{ \"champ\": \"{$item}\", \"type\": \"{$value['type']}\"".(isset($value['key']) ? ', "key": "'.$value['key'].'_key"' : '')."".(isset($value['increment']) ? ', "autoincrement": true' : ', "autoincrement": false')." }";
 						}
 
 						fwrite($f, '{"header": ['.implode(', ', $tmp).'], "datas": []}');
@@ -425,12 +427,48 @@ class Json implements IRequest
 				elseif ($this->request_array['selected'] === self::DATABASE) {
 					throw new Exception('Vous utilisez déja une base de données');
 				}
-				break;
+				return true;
+			case self::INSERT:
+				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
+				$all_table = json_decode($all_table);
+				$header = $all_table->header;
+				$datas = $all_table->datas;
+				foreach ($header as $item) {
+					if(isset($item->key) && $item->key == 'primary_key') {
+						$champ = $item->champ;
+						$last_id = $datas[count($datas)-1]->$champ;
+						//throw new Exception('Le champ `'.$champ.'` est une clé unique !');
+					}
+				}
+				$data = $this->request_array['values'];
+				$datas[] = $data;
+				$all_table->datas = $datas;
+
+				$f = fopen($this->directory_database.'/'.$this->request_array['table'].'.json', 'w+');
+				fwrite($f, json_encode($all_table));
+				fclose($f);
+
+				return true;
+			case self::SHOW:
+				$directory = opendir($this->directory_database);
+				$tmp = [];
+				while (($dir = readdir($directory)) !== false) {
+					if($dir != '.' && $dir != '..') {
+						$tmp[] = str_replace('.json', '', $dir);
+					}
+				}
+
+				return $tmp;
+			case self::SELECT:
+				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
+				$all_table = json_decode($all_table);
+
+				return $all_table->datas;
 			default:
 				break;
 		}
     	$this->last_request_array = $this->request_array;
-        var_dump($this->request_array);
+        //var_dump($this->request_array);
     }
 
     /**
@@ -439,6 +477,7 @@ class Json implements IRequest
     function values(array $values): IRequest
     {
         $this->request_array['values'] = $values;
+        return $this;
     }
 
     /**
