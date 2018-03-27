@@ -2,5 +2,5 @@
 
 class JsonConnexion extends ExtendedRequestConnexion
 {
-	protected	$file = '';
+	protected	$database = '';
 }

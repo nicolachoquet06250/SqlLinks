@@ -12,6 +12,18 @@ class Json implements IRequest
 			$write = false;
 
 	/**
+	 * @Description : Methods
+	 */
+	public const CREATE = 'CREATE';
+	public const SHOW = 'SHOW';
+	public const SELECT = 'SELECT';
+	public const INSERT = 'INSERT';
+	public const DELETE = 'DELETE';
+	public const DROP = 'DROP';
+	public const UPDATE = 'UPDATE';
+	public const ALTER = 'ALTER';
+
+	/**
 	 * @Description : For like() method
 	 */
 	public const START = 1;
@@ -25,10 +37,16 @@ class Json implements IRequest
 	public const OR = '||';
 
 	/**
+	 * @Description : For create() method
+	 */
+	public const TABLE = 'table';
+	public const DATABASE = 'database';
+
+	/**
      * {@inheritdoc}
      */
     public function __construct(RequestConnexion $connexion) {
-		$this->directory_database = $connexion->file()[0];
+		$this->directory_database = $connexion->database()[0];
 
 		if(!is_dir($this->directory_database)):
 			mkdir($this->directory_database,0777, true);
@@ -77,7 +95,7 @@ class Json implements IRequest
     function select(array $selected = []): IRequest
     {
     	$this->read();
-    	$this->request_array['method'] = 'SELECT';
+    	$this->request_array['method'] = self::SELECT;
     	if(empty($selected)) {
     		$selected = '*';
 		}
@@ -91,7 +109,7 @@ class Json implements IRequest
     function insert(): IRequest
     {
 		$this->write();
-		$this->request_array['method'] = 'INSERT';
+		$this->request_array['method'] = self::INSERT;
 		return $this;
     }
 
@@ -101,7 +119,7 @@ class Json implements IRequest
     function delete(): IRequest
     {
 		$this->write();
-		$this->request_array['method'] = 'DELETE';
+		$this->request_array['method'] = self::DELETE;
 		return $this;
     }
 
@@ -111,7 +129,7 @@ class Json implements IRequest
     function update(string $table): IRequest
     {
 		$this->write();
-		$this->request_array['method'] = 'UPDATE';
+		$this->request_array['method'] = self::UPDATE;
 		$this->request_array['table'] = $table;
 		return $this;
     }
@@ -122,7 +140,7 @@ class Json implements IRequest
     function show(): IRequest
     {
 		$this->read();
-		$this->request_array['method'] = 'SHOW';
+		$this->request_array['method'] = self::SHOW;
 		return $this;
     }
 
@@ -132,7 +150,7 @@ class Json implements IRequest
     function create($type, $name): IRequest
     {
 		$this->write();
-		$this->request_array['method'] = 'CREATE';
+		$this->request_array['method'] = self::CREATE;
 		$this->request_array['selected'] = $type;
 		$this->request_array['name_created'] = $name;
 		return $this;
@@ -144,7 +162,7 @@ class Json implements IRequest
     function drop($type, $name): IRequest
     {
 		$this->read();
-		$this->request_array['method'] = 'DROP';
+		$this->request_array['method'] = self::DROP;
 		$this->request_array['type'] = $type;
 		$this->request_array['name_droped'] = $name;
 		return $this;
@@ -156,7 +174,7 @@ class Json implements IRequest
     function alter($table): IRequest
     {
 		$this->read();
-		$this->request_array['method'] = 'ALTER';
+		$this->request_array['method'] = self::ALTER;
 		$this->request_array['table'] = $table;
 		return $this;
     }
@@ -209,6 +227,7 @@ class Json implements IRequest
         else {
 			throw new Exception('La table `'.$table.'` n\'existe pas.');
 		}
+		return $this;
     }
 
     /**
@@ -217,6 +236,7 @@ class Json implements IRequest
     function where($where): IRequest
     {
         $this->request_array['where'] = $where;
+        return $this;
     }
 
     /**
@@ -228,6 +248,7 @@ class Json implements IRequest
         	$array,
 			$place
 		];
+        return $this;
     }
 
     /**
@@ -239,6 +260,7 @@ class Json implements IRequest
         if($offset !== 0) {
         	$this->request_array['offset'] = $offset;
 		}
+		return $this;
     }
 
     /**
@@ -247,6 +269,7 @@ class Json implements IRequest
     function order_by($comumns): IRequest
     {
         $this->request_array['order_by'] = $comumns;
+		return $this;
     }
 
     /**
@@ -255,6 +278,7 @@ class Json implements IRequest
     function group_by($comumns): IRequest
     {
         $this->request_array['group_by'] = $comumns;
+		return $this;
     }
 
     /**
@@ -376,6 +400,35 @@ class Json implements IRequest
      */
     function query()
     {
+    	switch ($this->request_array['method']) {
+			case self::SELECT:
+			case self::INSERT:
+			case self::DELETE:
+			case self::UPDATE:
+			case self::ALTER:
+			case self::DROP:
+			case self::SHOW:
+				break;
+			case self::CREATE:
+				if($this->request_array['selected'] === self::TABLE) {
+					if (!file_exists($this->directory_database.'/'.$this->request_array['name_created'].'.json')) {
+						$f = fopen($this->directory_database.'/'.$this->request_array['name_created'].'.json', 'w+');
+						$tmp = [];
+						foreach ($this->request_array['set'] as $item => $value) {
+							$tmp[] = "{ \"champ\": \"{$item}\", \"type\": \"{$value}\" }";
+						}
+
+						fwrite($f, '{"header": ['.implode(', ', $tmp).'], "datas": []}');
+						fclose($f);
+					}
+				}
+				elseif ($this->request_array['selected'] === self::DATABASE) {
+					throw new Exception('Vous utilisez déja une base de données');
+				}
+				break;
+			default:
+				break;
+		}
     	$this->last_request_array = $this->request_array;
         var_dump($this->request_array);
     }
