@@ -187,6 +187,16 @@ class Json implements IRequest
         return $this;
     }
 
+	/**
+	 * @param array $array
+	 * @return IRequest
+	 */
+	public function add(array $array) {
+		$this->request_array['action'] = 'add';
+		$this->request_array['set'] = $array;
+		return $this;
+	}
+
     /**
      * {@inheritdoc}
      */
@@ -405,6 +415,41 @@ class Json implements IRequest
 			case self::DELETE:
 			case self::UPDATE:
 			case self::ALTER:
+				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
+				$all_table = json_decode($all_table);
+				$header = $all_table->header;
+				if($this->request_array['action'] === 'add') {
+					foreach ($this->request_array['set'] as $item => $value) {
+						var_dump($item);
+						var_dump($value);
+						$head = [
+							'champ' => $item,
+							'type' => $value['type']
+						];
+						if(isset($value['key'])) {
+							$head['key'] = $value['key'];
+						}
+						if(isset($value['increment'])) {
+							$head['autoincrement'] = true;
+						}
+						else {
+							$head['autoincrement'] = false;
+						}
+						if(isset($value['default'])) {
+							$head['default'] = $value['default'];
+						}
+
+						$header[] = $head;
+					}
+
+					$all_table->header = $header;
+
+					$f = fopen($this->directory_database.'/'.$this->request_array['table'].'.json', 'w+');
+					fwrite($f, json_encode($all_table));
+					fclose($f);
+					return true;
+				}
+				return false;
 			case self::DROP:
 				unlink($this->directory_database.'/'.$this->request_array['name_droped'].'.json');
 				if(is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
@@ -417,7 +462,7 @@ class Json implements IRequest
 						$f = fopen($this->directory_database.'/'.$this->request_array['name_created'].'.json', 'w+');
 						$tmp = [];
 						foreach ($this->request_array['set'] as $item => $value) {
-							$tmp[] = "{ \"champ\": \"{$item}\", \"type\": \"{$value['type']}\"".(isset($value['key']) ? ', "key": "'.$value['key'].'_key"' : '')."".(isset($value['increment']) ? ', "autoincrement": true' : ', "autoincrement": false')." }";
+							$tmp[] = "{ \"champ\": \"{$item}\", \"type\": \"{$value['type']}\"".(isset($value['key']) ? ', "key": "'.$value['key'].'_key"' : '')."".(isset($value['increment']) ? ', "autoincrement": true' : ', "autoincrement": false')."".(isset($value['default']) ? ', "default": "'.$value['default'].'"' : '')." }";
 						}
 
 						fwrite($f, '{"header": ['.implode(', ', $tmp).'], "datas": []}');

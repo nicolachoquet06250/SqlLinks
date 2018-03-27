@@ -4,6 +4,9 @@
 	try {
 		$cnx = new RequestConnexion(['database' => './database'], 'json');
 
+		/**
+		 * @var Json $jsondb
+		 */
 		$jsondb = Request::getIRequest($cnx, 'json');
 		/**
 		 * @Description: Install de la base de données de test
@@ -27,12 +30,14 @@
 				]);
 		$jsondb->query();
 
+		$jsondb->alter('toto')->add(['ecole' => ['type' => 'TEXT', 'default' => 'CampusID']])->query();
+
 		/*$jsondb->show()->tables();
 
 		var_dump($jsondb->query());*/
 
 		/*var_dump($jsondb->select()->from('toto')->query());*/
-		var_dump($jsondb->drop(Json::TABLE, 'toto')->query());
+		//var_dump($jsondb->drop(Json::TABLE, 'toto')->query());
 
 		/*$jsondb->insert()
 			   ->into('toto')
