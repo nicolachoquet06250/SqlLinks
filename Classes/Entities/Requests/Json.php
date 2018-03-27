@@ -3,11 +3,28 @@
 class Json implements IRequest
 {
 	private	$directory_database,
-			$request_array = [];
+			$request_array = [],
+			$last_request_array = [],
+			$query_result = [],
+			$last_query_result = false;
 
 	private $read = false,
 			$write = false;
-    /**
+
+	/**
+	 * @Description : For like() method
+	 */
+	public const START = 1;
+	public const END = 2;
+	public const MIDDLE = 3;
+
+	/**
+	 * @Description : logic operators
+	 */
+	public const AND = '&&';
+	public const OR = '||';
+
+	/**
      * {@inheritdoc}
      */
     public function __construct(RequestConnexion $connexion) {
@@ -165,7 +182,7 @@ class Json implements IRequest
      */
     function columns(): IRequest
     {
-        // TODO: Implement columns() method.
+    	return $this;
     }
 
     /**
@@ -173,7 +190,12 @@ class Json implements IRequest
      */
     function into($table): IRequest
     {
-        // TODO: Implement into() method.
+		if(is_file($this->directory_database.'/'.$table.'.json')) {
+			$this->request_array['table'] = $table;
+		}
+		else {
+			throw new Exception('La table `'.$table.'` n\'existe pas.');
+		}
     }
 
     /**
@@ -181,7 +203,7 @@ class Json implements IRequest
      */
     function from($table): IRequest
     {
-    	if(is_file($this->directory_database.'/'.$table)) {
+    	if(is_file($this->directory_database.'/'.$table.'.json')) {
 			$this->request_array['table'] = $table;
 		}
         else {
@@ -194,7 +216,7 @@ class Json implements IRequest
      */
     function where($where): IRequest
     {
-        // TODO: Implement where() method.
+        $this->request_array['where'] = $where;
     }
 
     /**
@@ -202,7 +224,10 @@ class Json implements IRequest
      */
     function like(array $array, int $place): IRequest
     {
-        // TODO: Implement like() method.
+        $this->request_array['like'] = [
+        	$array,
+			$place
+		];
     }
 
     /**
@@ -210,7 +235,10 @@ class Json implements IRequest
      */
     function limit(int $limite, int $offset = 0): IRequest
     {
-        // TODO: Implement limit() method.
+        $this->request_array['limit'] = $limite;
+        if($offset !== 0) {
+        	$this->request_array['offset'] = $offset;
+		}
     }
 
     /**
@@ -218,7 +246,7 @@ class Json implements IRequest
      */
     function order_by($comumns): IRequest
     {
-        // TODO: Implement order_by() method.
+        $this->request_array['order_by'] = $comumns;
     }
 
     /**
@@ -226,7 +254,7 @@ class Json implements IRequest
      */
     function group_by($comumns): IRequest
     {
-        // TODO: Implement group_by() method.
+        $this->request_array['group_by'] = $comumns;
     }
 
     /**
@@ -234,7 +262,8 @@ class Json implements IRequest
      */
     function and (): IRequest
     {
-        // TODO: Implement and() method.
+        $this->request_array['operator'][] = self::AND;
+        return $this;
     }
 
     /**
@@ -242,7 +271,8 @@ class Json implements IRequest
      */
     function or (): IRequest
     {
-        // TODO: Implement or() method.
+		$this->request_array['operator'][] = self::OR;
+		return $this;
     }
 
     /**
@@ -250,7 +280,8 @@ class Json implements IRequest
      */
     function is_null(): IRequest
     {
-        // TODO: Implement is_null() method.
+        $this->request_array['is_null'] = true;
+        return $this;
     }
 
     /**
@@ -258,7 +289,8 @@ class Json implements IRequest
      */
     function is_not_null(): IRequest
     {
-        // TODO: Implement is_not_null() method.
+        $this->request_array['is_null'] = false;
+        return $this;
     }
 
     /**
@@ -266,7 +298,8 @@ class Json implements IRequest
      */
     function on($on): IRequest
     {
-        // TODO: Implement on() method.
+        $this->request_array['on'] = $on;
+        return $this;
     }
 
     /**
@@ -274,7 +307,8 @@ class Json implements IRequest
      */
     function in(array $array): IRequest
     {
-        // TODO: Implement in() method.
+        $this->request_array['in'] = $array;
+        return $this;
     }
 
     /**
@@ -282,7 +316,8 @@ class Json implements IRequest
      */
     function set(array $to_set): IRequest
     {
-        // TODO: Implement set() method.
+        $this->request_array['set'] = $to_set;
+        return $this;
     }
 
     /**
@@ -290,7 +325,10 @@ class Json implements IRequest
      */
     function inner_join($table): IRequest
     {
-        // TODO: Implement inner_join() method.
+        $this->request_array['join'] = [
+        	'table' => $table
+		];
+        return $this;
     }
 
     /**
@@ -298,7 +336,11 @@ class Json implements IRequest
      */
     function left_join($table): IRequest
     {
-        // TODO: Implement left_join() method.
+		$this->request_array['join'] = [
+			'type' => 'left',
+			'table' => $table
+		];
+		return $this;
     }
 
     /**
@@ -306,23 +348,27 @@ class Json implements IRequest
      */
     function right_join($table): IRequest
     {
-        // TODO: Implement right_join() method.
+		$this->request_array['join'] = [
+			'type' => 'right',
+			'table' => $table
+		];
+		return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    function last_request(): string
+    function last_request(): array
     {
-        // TODO: Implement last_request() method.
+		return $this->last_request_array;
     }
 
     /**
      * {@inheritdoc}
      */
-    function request(): string
+    function request(): array
     {
-        // TODO: Implement request() method.
+        return $this->request_array;
     }
 
     /**
@@ -330,6 +376,7 @@ class Json implements IRequest
      */
     function query()
     {
+    	$this->last_request_array = $this->request_array;
         var_dump($this->request_array);
     }
 
@@ -338,7 +385,7 @@ class Json implements IRequest
      */
     function values(array $values): IRequest
     {
-        // TODO: Implement values() method.
+        $this->request_array['values'] = $values;
     }
 
     /**
@@ -346,7 +393,7 @@ class Json implements IRequest
      */
     function get_last_query_result()
     {
-        // TODO: Implement get_last_query_result() method.
+        return $this->last_query_result;
     }
 
     /**
@@ -354,7 +401,7 @@ class Json implements IRequest
      */
     function get_query_result(): array
     {
-        // TODO: Implement get_query_result() method.
+        return $this->query_result;
     }
 
     /**

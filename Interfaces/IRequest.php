@@ -187,11 +187,11 @@ interface IRequest {
 	/**
 	 * @return string
 	 */
-	function last_request():string ;
+	function last_request() ;
 	/**
 	 * @return string
 	 */
-	function request():string ;
+	function request() ;
 	/**
 	 * @return array|boolean
 	 */
@@ -204,7 +204,7 @@ interface IRequest {
 	function values(array $values):IRequest;
 
     /**
-     * @return array
+     * @return array|boolean
      */
 	function get_last_query_result() ;
 

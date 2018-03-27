@@ -722,6 +722,7 @@ class Mysql implements IRequest {
      */
     public function md5($chaine):IRequest {
 	    $this->request .= "MD5({$chaine}) ";
+	    return $this;
     }
 
     /**
@@ -730,5 +731,6 @@ class Mysql implements IRequest {
      */
     public function sha1($chaine):IRequest {
         $this->request .= "SHA1({$chaine}) ";
+        return $this;
     }
 }
