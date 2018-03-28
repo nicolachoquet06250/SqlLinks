@@ -42,22 +42,27 @@
 		$jsondb->insert()
 			   ->into('toto')
 			   ->values([[
-			   		'id' => 0,
 			   		'nom' => 'Choquet',
 					'prenom' => 'Yann',
-					'age' => 20
+					'age' => 20,
+					'ecole' => null
 				],[
-				   	'id' => 1,
 			   		'nom' => 'Loubet',
 					'prenom' => 'Karine',
-					'age' => 45
+					'age' => 45,
+					'ecole' => null
 				], [
-				   'id' => 2,
 				   'nom' => 'Choquet',
 				   'prenom' => 'Nicolas',
-				   'age' => 22
+				   'age' => 22,
+				   'ecole' => 'CampusID'
 			   ]]);
 		$jsondb->query();
+
+		//$jsondb->delete()->from('toto')->where(['id' => 0, 'nom' => 'Choquet']);
+
+		/*$jsondb->update('toto')->set(['prenom' => 'André'])->where(['nom' => 'Loubet']);
+		$jsondb->query();*/
 		/*$jsondb->select()->from('toto')->where(['id' => 0]);
 		$jsondb->query();*/
 	} catch (Exception $e) {

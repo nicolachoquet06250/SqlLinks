@@ -503,6 +503,11 @@ class Json extends DatabaseFiles implements IRequest
 					$datas = $all_table->datas;
 					$autoincrement = false;
 					$autoincrement_exists = false;
+					$champ_dispo = [];
+
+					foreach ($header as $value) {
+						$champ_dispo[] = $value->champ;
+					}
 
 					foreach ($header as $value) {
 						if($value->autoincrement == true) {
@@ -510,7 +515,17 @@ class Json extends DatabaseFiles implements IRequest
 							break;
 						}
 					}
+
+					foreach ($this->request_array['values'][$i] as $champ => $value) {
+						if(!in_array($champ, $champ_dispo)) {
+							throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
+						}
+					}
+
 					if (isset($this->request_array['values'][$i][$autoincrement])) {
+						if(count($this->request_array['values'][$i]) < count($all_table->header)) {
+							throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !".__LINE__);
+						}
 						foreach ($datas as $data) {
 							if ($data->$autoincrement == $this->request_array['values'][$i][$autoincrement]) {
 								$autoincrement_exists = true;
@@ -518,6 +533,9 @@ class Json extends DatabaseFiles implements IRequest
 							}
 						}
 					} else {
+						if(count($this->request_array['values'][$i]) < count($all_table->header)-1) {
+							throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !");
+						}
 						if (count($datas) == 0) {
 							$this->request_array['values'][$i][$autoincrement] = 0;
 						} else {
@@ -555,13 +573,77 @@ class Json extends DatabaseFiles implements IRequest
 
 				return $all_table->datas;
 			case self::DELETE	:
+				$all_table = $this->decode($this->read_file(
+						$this->directory_database.'/'.$this->request_array['table'].'.json'
+					));
+				foreach ($this->request_array['where'] as $item => $value) {
+					$champ_exists = false;
+					foreach ($all_table->header as $header) {
+						if($header->champ == $item) {
+							$champ_exists = true;
+							break;
+						}
+					}
+					if($champ_exists) {
+						foreach ($all_table->datas as $i => $data) {
+							if($data->$item == $value) {
+								unset($all_table->datas[$i]);
+							}
+						}
+						$all_table->datas = $this->ordonate_array($all_table->datas);
+					}
+					else {
+						throw new Exception("Le champ `{$item}` n'existe pas !");
+					}
+				}
+
+				return $this->write_in_file(
+					$this->directory_database.'/'.$this->request_array['table'].'.json',
+					$this->encode($all_table)
+				);
 			case self::UPDATE	:
+				$all_table = $this->decode($this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json'));
+				foreach ($this->request_array['where'] as $item => $value) {
+					$champ_exists = false;
+					foreach ($all_table->header as $header) {
+						if($header->champ == $item) {
+							$champ_exists = true;
+							break;
+						}
+					}
+					if(!$champ_exists) {
+						throw new Exception("Le champ `{$item}` n'existe pas !");
+					}
+				}
+				foreach ($this->request_array['set'] as $item => $value) {
+					$champ_exists = false;
+					foreach ($all_table->header as $header) {
+						if($header->champ == $item) {
+							$champ_exists = true;
+							break;
+						}
+					}
+					if(!$champ_exists) {
+						throw new Exception("Le champ `{$item}` n'existe pas !");
+					}
+				}
+				foreach ($this->request_array['where'] as $item => $value) {
+					foreach ($all_table->datas as $i => $data) {
+						if($data->$item == $value) {
+							foreach ($this->request_array['set'] as $set => $value_set) {
+								$all_table->datas[$i]->$set = $value_set;
+							}
+						}
+					}
+				}
+
+				return $this->write_in_file(
+					$this->directory_database.'/'.$this->request_array['table'].'.json',
+					$this->encode($all_table)
+				);
 			default:
-				break;
+				return false;
 		}
-    	$this->last_request_array = $this->request_array;
-        var_dump($this->request_array);
-        return true;
     }
 
     /**

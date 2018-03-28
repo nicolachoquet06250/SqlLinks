@@ -56,4 +56,12 @@ class DatabaseFiles {
 		}
 		throw new Exception("Le fichier {$file} n'existe pas !");
 	}
+
+	public function ordonate_array(array $array):array {
+		$tmp = [];
+		foreach ($array as $item) {
+			$tmp[] = $item;
+		}
+		return $tmp;
+	}
 }
