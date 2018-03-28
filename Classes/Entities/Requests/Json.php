@@ -504,9 +504,16 @@ class Json extends DatabaseFiles implements IRequest
 					$autoincrement = false;
 					$autoincrement_exists = false;
 					$champ_dispo = [];
+					$champ_default = [];
 
 					foreach ($header as $value) {
 						$champ_dispo[] = $value->champ;
+					}
+
+					foreach ($header as $value) {
+						if(isset($value->default)) {
+							$champ_default[$value->champ] = $value->default;
+						}
 					}
 
 					foreach ($header as $value) {
@@ -524,7 +531,9 @@ class Json extends DatabaseFiles implements IRequest
 
 					if (isset($this->request_array['values'][$i][$autoincrement])) {
 						if(count($this->request_array['values'][$i]) < count($all_table->header)) {
-							throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !".__LINE__);
+							if(count($this->request_array['values'][$i])+count($champ_default) < count($all_table->header)) {
+								throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !".__LINE__);
+							}
 						}
 						foreach ($datas as $data) {
 							if ($data->$autoincrement == $this->request_array['values'][$i][$autoincrement]) {
@@ -534,12 +543,20 @@ class Json extends DatabaseFiles implements IRequest
 						}
 					} else {
 						if(count($this->request_array['values'][$i]) < count($all_table->header)-1) {
-							throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !");
+							if(count($this->request_array['values'][$i])+count($champ_default) < count($all_table->header)-1) {
+								throw new Exception("Il y a des champs manquants par rapport à la table `{$this->request_array['table']}` dans votre requete !");
+							}
 						}
 						if (count($datas) == 0) {
 							$this->request_array['values'][$i][$autoincrement] = 0;
 						} else {
 							$this->request_array['values'][$i][$autoincrement] = $datas[count($datas) - 1]->$autoincrement + 1;
+						}
+					}
+
+					foreach ($champ_default as $item => $default) {
+						if(!isset($this->request_array['values'][$i][$item])) {
+							$this->request_array['values'][$i][$item] = $default;
 						}
 					}
 
@@ -570,8 +587,57 @@ class Json extends DatabaseFiles implements IRequest
 			case self::SELECT	:
 				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
 				$all_table = $this->decode($all_table);
+				if($this->request_array['selected'] === '*') {
+					if(isset($this->request_array['where'])) {
+						$datas = $all_table->datas;
+						foreach ($this->request_array['where'] as $item => $value) {
+							var_dump($item);
+							var_dump($value);
+						}
+					}
+					return $all_table->datas;
+				}
+				else {
+					$datas = $all_table->datas;
+					$tmp = [];
+					foreach ($this->request_array['where'] as $item => $value) {
+						foreach ($datas as $data) {
+							if($data->$item == $value) {
+								$obj = new stdClass();
+								foreach ($this->request_array['selected'] as $champ => $alias) {
+									if(gettype($champ) === 'string') {
+										if(isset($data->$champ)) {
+											$obj->$alias = $data->$champ;
+										}
+										else {
+											throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
+										}
+									}
+									else {
+										if(isset($data->$alias)) {
+											$obj->$alias = $data->$alias;
+										}
+										else {
+											throw new Exception("Le champ `{$alias}` n'existe pas dans la table `{$this->request_array['table']}` !");
+										}
+									}
+								}
+								$tmp[] = $obj;
+							}
+						}
+					}
+					var_dump($tmp);
 
-				return $all_table->datas;
+					/*$tmp = [];
+					foreach ($all_table->datas as $data) {
+						$obj = new stdClass();
+						foreach ($data as $champ => $valeur) {
+							if($champ == )
+							$obj->
+						}
+					}*/
+				}
+				break;
 			case self::DELETE	:
 				$all_table = $this->decode($this->read_file(
 						$this->directory_database.'/'.$this->request_array['table'].'.json'

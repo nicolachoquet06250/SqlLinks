@@ -39,7 +39,7 @@
 		/*var_dump($jsondb->select()->from('toto')->query());*/
 		//var_dump($jsondb->drop(Json::TABLE, 'toto')->query());
 
-		$jsondb->insert()
+		/*$jsondb->insert()
 			   ->into('toto')
 			   ->values([[
 			   		'nom' => 'Choquet',
@@ -57,14 +57,14 @@
 				   'age' => 22,
 				   'ecole' => 'CampusID'
 			   ]]);
-		$jsondb->query();
+		$jsondb->query();*/
 
 		//$jsondb->delete()->from('toto')->where(['id' => 0, 'nom' => 'Choquet']);
 
 		/*$jsondb->update('toto')->set(['prenom' => 'André'])->where(['nom' => 'Loubet']);
 		$jsondb->query();*/
-		/*$jsondb->select()->from('toto')->where(['id' => 0]);
-		$jsondb->query();*/
+		$jsondb->select(['id' => 'id_person', 'nom' => 'nom_person'])->from('toto')->where(['id' => 1]);
+		$jsondb->query();
 	} catch (Exception $e) {
 		exit($e->getMessage()."\n");
 	}
