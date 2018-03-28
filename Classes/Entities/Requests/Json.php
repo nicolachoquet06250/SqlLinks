@@ -162,8 +162,13 @@ class Json extends DatabaseFiles implements IRequest
     function drop($type, $name): IRequest
     {
 		$this->read();
-		$this->request_array['method'] = self::DROP;
-		$this->request_array['type'] = $type;
+		if($this->request_array['method'] == self::ALTER) {
+			$this->request_array['action'] = 'drop';
+		}
+		else {
+			$this->request_array['method'] = self::DROP;
+			$this->request_array['type'] = $type;
+		}
 		$this->request_array['name_droped'] = $name;
 		return $this;
     }
@@ -193,6 +198,26 @@ class Json extends DatabaseFiles implements IRequest
 	 */
 	public function add(array $array) {
 		$this->request_array['action'] = 'add';
+		$this->request_array['set'] = $array;
+		return $this;
+	}
+
+	/**
+	 * @param array $array
+	 * @return IRequest
+	 */
+	public function modify(array $array) {
+		$this->request_array['action'] = 'modify';
+		$this->request_array['set'] = $array;
+		return $this;
+	}
+
+	/**
+	 * @param array $array
+	 * @return IRequest
+	 */
+	public function change(array $array) {
+		$this->request_array['action'] = 'change';
 		$this->request_array['set'] = $array;
 		return $this;
 	}
@@ -413,8 +438,8 @@ class Json extends DatabaseFiles implements IRequest
     {
     	switch ($this->request_array['method']) {
 			case self::ALTER	:
-				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
-				$all_table = json_decode($all_table);
+				$all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
+				$all_table = $this->decode($all_table);
 				$header = $all_table->header;
 				if($this->request_array['action'] === 'add') {
 					foreach ($this->request_array['set'] as $item => $value) {
@@ -440,10 +465,10 @@ class Json extends DatabaseFiles implements IRequest
 
 					$all_table->header = $header;
 
-					$f = fopen($this->directory_database.'/'.$this->request_array['table'].'.json', 'w+');
-					fwrite($f, json_encode($all_table));
-					fclose($f);
-					return true;
+					return $this->write_in_file(
+						$this->directory_database.'/'.$this->request_array['table'].'.json',
+						$this->encode($all_table)
+					);
 				}
 				return false;
 			case self::DROP		:
@@ -470,24 +495,48 @@ class Json extends DatabaseFiles implements IRequest
 				}
 				return true;
 			case self::INSERT	:
-				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
-				$all_table = json_decode($all_table);
-				$header = $all_table->header;
-				$datas = $all_table->datas;
-				foreach ($header as $item) {
-					if(isset($item->key) && $item->key == 'primary_key') {
-						$champ = $item->champ;
-						$last_id = $datas[count($datas)-1]->$champ;
-						//throw new Exception('Le champ `'.$champ.'` est une clé unique !');
+				for($i=0, $max=count($this->request_array['values']); $i<$max; $i++) {
+
+					$all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
+					$all_table = $this->decode($all_table);
+					$header = $all_table->header;
+					$datas = $all_table->datas;
+					$autoincrement = false;
+					$autoincrement_exists = false;
+
+					foreach ($header as $value) {
+						if($value->autoincrement == true) {
+							$autoincrement = $value->champ;
+							break;
+						}
+					}
+					if (isset($this->request_array['values'][$i][$autoincrement])) {
+						foreach ($datas as $data) {
+							if ($data->$autoincrement == $this->request_array['values'][$i][$autoincrement]) {
+								$autoincrement_exists = true;
+								break;
+							}
+						}
+					} else {
+						if (count($datas) == 0) {
+							$this->request_array['values'][$i][$autoincrement] = 0;
+						} else {
+							$this->request_array['values'][$i][$autoincrement] = $datas[count($datas) - 1]->$autoincrement + 1;
+						}
+					}
+
+					if (!$autoincrement_exists) {
+						$data             = $this->request_array['values'][$i];
+						$datas[]          = $data;
+						$all_table->datas = $datas;
+						$this->write_in_file(
+							$this->directory_database.'/'.$this->request_array['table'].'.json',
+							$this->encode($all_table)
+						);
+					} else {
+						throw new Exception("La clée `{$autoincrement}` doit être unique");
 					}
 				}
-				$data = $this->request_array['values'];
-				$datas[] = $data;
-				$all_table->datas = $datas;
-
-				$f = fopen($this->directory_database.'/'.$this->request_array['table'].'.json', 'w+');
-				fwrite($f, json_encode($all_table));
-				fclose($f);
 
 				return true;
 			case self::SHOW		:
@@ -502,7 +551,7 @@ class Json extends DatabaseFiles implements IRequest
 				return $tmp;
 			case self::SELECT	:
 				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
-				$all_table = json_decode($all_table);
+				$all_table = $this->decode($all_table);
 
 				return $all_table->datas;
 			case self::DELETE	:
@@ -512,6 +561,7 @@ class Json extends DatabaseFiles implements IRequest
 		}
     	$this->last_request_array = $this->request_array;
         var_dump($this->request_array);
+        return true;
     }
 
     /**
@@ -545,6 +595,7 @@ class Json extends DatabaseFiles implements IRequest
     function asc(): IRequest
     {
         $this->request_array['order'] = 'asc';
+        return $this;
     }
 
     /**
@@ -553,5 +604,6 @@ class Json extends DatabaseFiles implements IRequest
     function desc(): IRequest
     {
         $this->request_array['order'] = 'desc';
+		return $this;
     }
 }

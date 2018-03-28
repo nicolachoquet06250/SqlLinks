@@ -30,8 +30,7 @@
 				]);
 		$jsondb->query();
 
-		$jsondb->alter('toto')->add(['ecole' => ['type' => 'TEXT', 'default' => 'CampusID']])->query();
-		var_dump($jsondb->decode('{"test": "voila"}'));
+		//$jsondb->alter('toto')->add(['ecole' => ['type' => 'TEXT', 'default' => 'CampusID']])->query();
 
 		/*$jsondb->show()->tables();
 
@@ -40,15 +39,25 @@
 		/*var_dump($jsondb->select()->from('toto')->query());*/
 		//var_dump($jsondb->drop(Json::TABLE, 'toto')->query());
 
-		/*$jsondb->insert()
+		$jsondb->insert()
 			   ->into('toto')
-			   ->values([
-			   		'id' => 2,
-					'nom' => 'Choquet',
+			   ->values([[
+			   		'id' => 0,
+			   		'nom' => 'Choquet',
 					'prenom' => 'Yann',
 					'age' => 20
-				]);
-		$jsondb->query();*/
+				],[
+				   	'id' => 1,
+			   		'nom' => 'Loubet',
+					'prenom' => 'Karine',
+					'age' => 45
+				], [
+				   'id' => 2,
+				   'nom' => 'Choquet',
+				   'prenom' => 'Nicolas',
+				   'age' => 22
+			   ]]);
+		$jsondb->query();
 		/*$jsondb->select()->from('toto')->where(['id' => 0]);
 		$jsondb->query();*/
 	} catch (Exception $e) {
