@@ -2,7 +2,10 @@
 	require_once 'autoload.php';
 
 	try {
-		$cnx = new RequestConnexion(['database' => './database'], 'json');
+		var_dump(__DIR__);
+		$cnx = new RequestConnexion([
+			'database' => __DIR__.'/database'
+		], 'json');
 
 		/**
 		 * @var Json $jsondb
@@ -16,55 +19,46 @@
 					'id' => [
 						'type' 		=> 'INT',
 						'key' 		=> 'primary',
-						'increment' => 'auto'
+						'increment' => 'auto',
 					],
 					'nom' => [
-						'type'		=> 'TEXT'
+						'type'		=> 'TEXT',
 					],
 					'prenom' => [
-						'type' 		=> 'TEXT'
+						'type' 		=> 'TEXT',
 					],
 					'age' => [
-						'type' 		=> 'INT'
-					]
-				]);
-		$jsondb->query();
+						'type' 		=> 'INT',
+					],
+					'ecole' => [
+						'type'		=> 'TEXT',
+						'default'	=> 'CampusID',
+					],
+				])->query();
 
-		//$jsondb->alter('toto')->add(['ecole' => ['type' => 'TEXT', 'default' => 'CampusID']])->query();
-
-		/*$jsondb->show()->tables();
-
-		var_dump($jsondb->query());*/
-
-		/*var_dump($jsondb->select()->from('toto')->query());*/
-		//var_dump($jsondb->drop(Json::TABLE, 'toto')->query());
-
-		/*$jsondb->insert()
-			   ->into('toto')
+		$jsondb->insert()
+			   ->into('user')
 			   ->values([[
-			   		'nom' => 'Choquet',
-					'prenom' => 'Yann',
+			   		'nom' => 'Guignard',
+					'prenom' => 'Jess',
 					'age' => 20,
 					'ecole' => null
 				],[
-			   		'nom' => 'Loubet',
-					'prenom' => 'Karine',
-					'age' => 45,
-					'ecole' => null
-				], [
 				   'nom' => 'Choquet',
 				   'prenom' => 'Nicolas',
 				   'age' => 22,
 				   'ecole' => 'CampusID'
-			   ]]);
-		$jsondb->query();*/
+			   ],[
+			   		'nom' => 'Desplang',
+					'prenom' => 'Christopher',
+					'age' => 20,
+					'ecole' => 'CampusID'
+				]])->query();
 
-		//$jsondb->delete()->from('toto')->where(['id' => 0, 'nom' => 'Choquet']);
-
-		/*$jsondb->update('toto')->set(['prenom' => 'André'])->where(['nom' => 'Loubet']);
-		$jsondb->query();*/
-		$jsondb->select(['id' => 'id_person', 'nom' => 'nom_person'])->from('toto')->where(['id' => 1]);
-		$jsondb->query();
+		$result = $jsondb->select([
+			'prenom' => 'prenom_person',
+			'nom' => 'nom_person'
+		])->from('user')->query();
 	} catch (Exception $e) {
 		exit($e->getMessage()."\n");
 	}
