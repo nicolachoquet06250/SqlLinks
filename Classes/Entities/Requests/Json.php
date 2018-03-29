@@ -42,8 +42,9 @@ class Json extends DatabaseFiles implements IRequest
 	public const TABLE = 'table';
 	public const DATABASE = 'database';
 
-	/**
+    /**
      * {@inheritdoc}
+     * @throws Exception
      */
     public function __construct(RequestConnexion $connexion) {
 		$this->directory_database = $connexion->database()[0];
@@ -240,6 +241,7 @@ class Json extends DatabaseFiles implements IRequest
 
     /**
      * {@inheritdoc}
+     * @throws Exception
      */
     function into($table): IRequest
     {
@@ -254,6 +256,7 @@ class Json extends DatabaseFiles implements IRequest
 
     /**
      * {@inheritdoc}
+     * @throws Exception
      */
     function from($table): IRequest
     {
@@ -433,6 +436,7 @@ class Json extends DatabaseFiles implements IRequest
 
     /**
      * {@inheritdoc}
+     * @throws Exception
      */
     function query()
     {
@@ -512,6 +516,9 @@ class Json extends DatabaseFiles implements IRequest
 
 					foreach ($header as $value) {
 						if(isset($value->default)) {
+                            /**
+                             * @var array $value
+                             */
 							$champ_default[$value->champ] = $value->default;
 						}
 					}
@@ -642,18 +649,11 @@ class Json extends DatabaseFiles implements IRequest
 						}
 					}
 					return $tmp;
-
-					/*$tmp = [];
-					foreach ($all_table->datas as $data) {
-						$obj = new stdClass();
-						foreach ($data as $champ => $valeur) {
-							if($champ == )
-							$obj->
-						}
-					}*/
 				}
-				break;
 			case self::DELETE	:
+                /**
+                 * @var array $all_table
+                 */
 				$all_table = $this->decode($this->read_file(
 						$this->directory_database.'/'.$this->request_array['table'].'.json'
 					));
@@ -671,6 +671,9 @@ class Json extends DatabaseFiles implements IRequest
 								unset($all_table->datas[$i]);
 							}
 						}
+                        /**
+                         * @var array $all_table
+                         */
 						$all_table->datas = $this->ordonate_array($all_table->datas);
 					}
 					else {

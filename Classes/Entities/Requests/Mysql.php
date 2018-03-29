@@ -86,24 +86,22 @@ class Mysql implements IRequest {
      * @throws Exception
      */
 	public function __construct(RequestConnexion $connexion) {
-		$this->cnx = $connexion;
-		if (class_exists('mysqli')) {
-		    $is_debug = $connexion->is_debug();
-		    if(!$is_debug) {
-                $this->mysqli = new mysqli(
-                    $connexion->host(),
-                    $connexion->user(),
-                    $connexion->password(),
-                    $connexion->database()
-                );
+	    if(get_class($connexion) === 'MysqlConnexion') {
+            $this->cnx = $connexion;
+            if (class_exists('mysqli')) {
+                $is_debug = $connexion->is_debug();
+                if (!$is_debug) {
+                    $this->mysqli = new mysqli($connexion->host(), $connexion->user(), $connexion->password(), $connexion->database());
+                } else {
+                    $this->mysqli = false;
+                }
+            } else {
+                throw new Exception('Vous devez installer l\'extension \'php-mysql\' !');
             }
-            else {
-		        $this->mysqli = false;
-            }
-		}
-		else {
-			throw new Exception('Vous devez installer l\'extension \'php-mysql\' !');
-		}
+        }
+        else {
+            throw new Exception('Ce n\'est pas le bon type de connexion');
+        }
 	}
 
 	/**

@@ -2,7 +2,6 @@
 	require_once 'autoload.php';
 
 	try {
-		var_dump(__DIR__);
 		$cnx = new RequestConnexion([
 			'database' => __DIR__.'/database'
 		], 'json');
@@ -14,7 +13,7 @@
 		/**
 		 * @Description: Install de la base de données de test
 		 */
-		$jsondb->create(Json::TABLE, 'toto')
+		$jsondb->create(Json::TABLE, 'user')
 			   ->set([
 					'id' => [
 						'type' 		=> 'INT',
@@ -58,7 +57,9 @@
 		$result = $jsondb->select([
 			'prenom' => 'prenom_person',
 			'nom' => 'nom_person'
-		])->from('user')->query();
+		])->from('user')->where(['ecole' => 'CampusID'])->query();
+
+		var_dump($result);
 	} catch (Exception $e) {
 		exit($e->getMessage()."\n");
 	}
