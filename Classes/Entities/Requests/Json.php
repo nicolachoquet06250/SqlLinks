@@ -163,7 +163,7 @@ class Json extends DatabaseFiles implements IRequest
     function drop($type, $name): IRequest
     {
 		$this->read();
-		if($this->request_array['method'] == self::ALTER) {
+		if(isset($this->request_array['method']) && $this->request_array['method'] == self::ALTER) {
 			$this->request_array['action'] = 'drop';
 		}
 		else {
@@ -476,9 +476,33 @@ class Json extends DatabaseFiles implements IRequest
 				}
 				return false;
 			case self::DROP		:
-				unlink($this->directory_database.'/'.$this->request_array['name_droped'].'.json');
-				if(is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
-					return false;
+				if($this->request_array['type'] == Json::TABLE) {
+					if (is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
+						unlink($this->directory_database.'/'.$this->request_array['name_droped'].'.json');
+					}
+					else {
+						throw new Exception("La table `{$this->request_array['name_droped']}` n'existe pas");
+					}
+					if (is_file($this->directory_database.'/'.$this->request_array['name_droped'].'.json')) {
+						return false;
+					}
+				}
+				elseif ($this->request_array['type'] == Json::DATABASE) {
+					if (is_dir($this->request_array['name_droped'].'')) {
+						$dir = opendir($this->request_array['name_droped'].'');
+						while (false !== ($directory = readdir($dir))) {
+							if ($directory != '.' && $directory != '..') {
+								unlink($this->request_array['name_droped'].'/'.$directory);
+							}
+						}
+						rmdir($this->request_array['name_droped'].'');
+					}
+					else {
+						throw new Exception("La base de données `{$this->request_array['name_droped']}` n'existe pas");
+					}
+					if (is_dir($this->request_array['name_droped'].'')) {
+						return false;
+					}
 				}
 				return true;
 			case self::CREATE	:

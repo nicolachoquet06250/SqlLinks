@@ -60,6 +60,15 @@
 		])->from('user')->where(['ecole' => 'CampusID'])->query();
 
 		var_dump($result);
+
+		$response = $jsondb->drop(Json::TABLE, 'test')->query();
+
+		if($response) {
+			echo "ok\n";
+		}
+		else {
+			echo "error\n";
+		}
 	} catch (Exception $e) {
 		exit($e->getMessage()."\n");
 	}
