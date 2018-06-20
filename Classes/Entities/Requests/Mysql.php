@@ -19,23 +19,23 @@ class Mysql implements IRequest {
     /**
      * @Description : For like() method
      */
-    public const START = 1;
-	public const END = 2;
-	public const MIDDLE = 3;
+    const START = 1;
+	const END = 2;
+	const MIDDLE = 3;
 
     /**
      * @Description : For has() method
      */
-	public const TBL = 1;
-	public const DB = 2;
+	const TBL = 1;
+	const DB = 2;
 
     /**
      * @Description : for create table and database
      */
-    public const TABLE = 'TABLE';
-    public const DATABASE = 'DATABASE';
-	public const IF_NOT_EXISTS = 'IF NOT EXISTS';
-	public const IF_EXISTS = 'IF EXISTS';
+    const TABLE = 'TABLE';
+    const DATABASE = 'DATABASE';
+	const IF_NOT_EXISTS = 'IF NOT EXISTS';
+	const IF_EXISTS = 'IF EXISTS';
 
     /**
      * @Description : SQL Types
@@ -56,7 +56,7 @@ class Mysql implements IRequest {
 	public static function CHAR($size='') {
 	    return "CHAR({$size})";
     }
-	public const TEXT = 'TEXT';
+	const TEXT = 'TEXT';
 
     /**
      * @param int $size
@@ -65,20 +65,20 @@ class Mysql implements IRequest {
 	public static function INT($size=11) {
 	    return "INT({$size})";
     }
-	public const DATETIME = 'DATETIME';
-	public const DATE = 'DATE';
-	public const TIMESTAMP = 'TIMESTAMP';
-	public const TIME = 'TIME';
-	public const YEAR = 'YEAR';
+    const DATETIME = 'DATETIME';
+	const DATE = 'DATE';
+	const TIMESTAMP = 'TIMESTAMP';
+	const TIME = 'TIME';
+	const YEAR = 'YEAR';
 
     /**
      * @Description : For keys
      */
-	public const PRIMARY_KEY = 'PRIMARY KEY';
-	public const DEFAULT = 'DEFAULT';
-	public const NOT_NULL = 'NOT NULL';
-	public const AUTO_INCREMENT = 'AUTO_INCREMENT';
-	public const KEY = 'KEY';
+	const PRIMARY_KEY = 'PRIMARY KEY';
+	const DEFAULT = 'DEFAULT';
+	const NOT_NULL = 'NOT NULL';
+	const AUTO_INCREMENT = 'AUTO_INCREMENT';
+	const KEY = 'KEY';
 
 
     /**

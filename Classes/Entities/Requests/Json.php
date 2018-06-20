@@ -14,33 +14,33 @@ class Json extends DatabaseFiles implements IRequest
 	/**
 	 * @Description : Methods
 	 */
-	public const CREATE = 'CREATE';
-	public const SHOW = 'SHOW';
-	public const SELECT = 'SELECT';
-	public const INSERT = 'INSERT';
-	public const DELETE = 'DELETE';
-	public const DROP = 'DROP';
-	public const UPDATE = 'UPDATE';
-	public const ALTER = 'ALTER';
+	const CREATE = 'CREATE';
+	const SHOW = 'SHOW';
+	const SELECT = 'SELECT';
+	const INSERT = 'INSERT';
+	const DELETE = 'DELETE';
+	const DROP = 'DROP';
+	const UPDATE = 'UPDATE';
+	const ALTER = 'ALTER';
 
 	/**
 	 * @Description : For like() method
 	 */
-	public const START = 1;
-	public const END = 2;
-	public const MIDDLE = 3;
+	const START = 1;
+	const END = 2;
+	const MIDDLE = 3;
 
 	/**
 	 * @Description : logic operators
 	 */
-	public const AND = '&&';
-	public const OR = '||';
+	const AND = '&&';
+	const OR = '||';
 
 	/**
 	 * @Description : For create() method
 	 */
-	public const TABLE = 'table';
-	public const DATABASE = 'database';
+	const TABLE = 'table';
+	const DATABASE = 'database';
 
     /**
      * {@inheritdoc}
