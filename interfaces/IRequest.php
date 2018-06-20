@@ -6,9 +6,9 @@ interface IRequest {
 	/**
 	 * IRequest constructor.
 	 *
-	 * @param RequestConnexion $connexion
+	 * @param \sql_links\factories\RequestConnexion $connexion
 	 */
-	function __construct(RequestConnexion $connexion);
+	function __construct(\sql_links\factories\RequestConnexion $connexion);
 
 	/**
 	 * @return void

@@ -3,6 +3,10 @@
 namespace sql_links\requests;
 
 use \sql_links\Entities\extended\DatabaseFiles;
+use \sql_links\interfaces\IRequest;
+use \sql_links\factories\RequestConnexion;
+use stdClass;
+use Exception;
 
 class Json extends DatabaseFiles implements IRequest
 {
