@@ -3,6 +3,9 @@
 namespace sql_links\requests;
 
 use sql_links\interfaces\IRequest;
+use \sql_links\factories\RequestConnexion;
+use Exception;
+use \mysqli;
 
 class Mysql implements IRequest {
 

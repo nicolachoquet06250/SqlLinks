@@ -3,6 +3,7 @@
 namespace sql_links\Entities\extended;
 
 use sql_links\interfaces\IRequestConnexion;
+use Exception;
 
 class ExtendedRequestConnexion implements IRequestConnexion {
 
