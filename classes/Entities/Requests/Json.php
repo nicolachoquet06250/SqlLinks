@@ -1,5 +1,9 @@
 <?php
 
+namespace sql_links\requests;
+
+use \sql_links\Entities\extended\DatabaseFiles;
+
 class Json extends DatabaseFiles implements IRequest
 {
 	private	$directory_database,

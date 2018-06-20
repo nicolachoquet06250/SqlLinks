@@ -1,5 +1,9 @@
 <?php
 
+namespace sql_links\Entities\extended;
+
+use sql_links\interfaces\IRequestConnexion;
+
 class ExtendedRequestConnexion implements IRequestConnexion {
 
 	public function __construct(array $idents) {

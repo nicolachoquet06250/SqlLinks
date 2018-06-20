@@ -1,5 +1,7 @@
 <?php
 
+namespace sql_links\Entities\extended;
+
 class DatabaseFiles {
 
 	/**

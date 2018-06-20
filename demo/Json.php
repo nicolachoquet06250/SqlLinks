@@ -1,4 +1,10 @@
 <?php
+namespace sql_links\demo;
+use \sql_links\factories\RequestConnexion;
+use \sql_links\factories\Request;
+use \sql_links\requests\Json;
+use Exception;
+
 	require_once 'autoload.php';
 
 	try {

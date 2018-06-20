@@ -1,5 +1,7 @@
 <?php
 
+namespace sql_links\interfaces;
+
 interface IRequest {
 	/**
 	 * IRequest constructor.

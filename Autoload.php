@@ -1,4 +1,5 @@
 <?php
+namespace sql_links;
 
 class Auto {
 	public static function load($path = '.') {

@@ -1,4 +1,11 @@
 <?php
+
+namespace sql_links\demo;
+use \sql_links\factories\RequestConnexion;
+use \sql_links\factories\Request;
+use \sql_links\requests\Mysql;
+use Exception;
+
 	require 'autoload.php';
 
 	try {

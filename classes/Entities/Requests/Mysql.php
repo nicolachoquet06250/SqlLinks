@@ -1,5 +1,9 @@
 <?php
 
+namespace sql_links\requests;
+
+use sql_links\interfaces\IRequest;
+
 class Mysql implements IRequest {
 
 	/**
