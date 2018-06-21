@@ -2,6 +2,9 @@
 
 namespace sql_links\factories;
 
+use Exception;
+use sql_links\interfaces\IRequest;
+
 class Request {
 
 	private static $request;
@@ -15,10 +18,11 @@ class Request {
 	 */
 	public static function getIRequest(RequestConnexion $connexion, $type='mysql') {
 		$classe = ucfirst($type);
-		if(is_file('../classes/Entities/Requests/'.$classe.'.php')) {
-			require_once '../classes/Entities/Requests/'.$classe.'.php';
-			if (class_exists($classe)) {
-				self::$request = new $classe($connexion);
+		if(is_file('./custom/sql_links/classes/entities/requests/'.$classe.'.php')) {
+			require_once './custom/sql_links/classes/entities/requests/'.$classe.'.php';
+			$classe_to_instenciate = '\\sql_links\\requests\\'.$classe;
+			if (class_exists($classe_to_instenciate)) {
+				self::$request = new $classe_to_instenciate($connexion);
 				if (!self::$request instanceof IRequest) {
 					throw new Exception(ucfirst($type).' n\'est pas un type accepté.');
 				}

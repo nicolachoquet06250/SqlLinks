@@ -2,6 +2,10 @@
 
 namespace sql_links\Entities\extended;
 
+use Exception;
+use \stdClass;
+use \SimpleXMLElement;
+
 class DatabaseFiles {
 
 	/**

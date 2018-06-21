@@ -1,6 +1,8 @@
 <?php
 
 namespace sql_links\factories;
+use \Exception;
+use sql_links\interfaces\IRequestConnexion;
 
 class RequestConnexion {
 	private $cnx, $debug=false;
@@ -14,10 +16,15 @@ class RequestConnexion {
 	 */
 	function __construct(array $cnx, $type='mysql') {
 		$classe = ucfirst($type).'Connexion';
-		if(is_file('../classes/Entities/Connexions/'.$classe.'.php')) {
-			require_once '../classes/Entities/Connexions/'.$classe.'.php';
-			if (class_exists($classe)) {
-				$this->cnx = new $classe($cnx);
+		$dir = opendir('./custom/sql_links/classes/entities/connexions');
+		while (($file = readdir($dir)) !== false) {
+		    var_dump($file);
+        }
+		if(is_file('./custom/sql_links/classes/entities/connexions/'.$classe.'.php')) {
+			require_once './custom/sql_links/classes/entities/connexions/'.$classe.'.php';
+            $classe_to_instenciate = '\\sql_links\\Entities\\connexions\\'.$classe;
+			if (class_exists($classe_to_instenciate)) {
+				$this->cnx = new $classe_to_instenciate($cnx);
 				if (!$this->cnx instanceof IRequestConnexion) {
 					throw new Exception(ucfirst($type).' n\'est pas un type accepté.');
 				}
