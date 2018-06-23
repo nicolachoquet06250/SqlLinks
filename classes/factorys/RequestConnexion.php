@@ -16,10 +16,7 @@ class RequestConnexion {
 	 */
 	function __construct(array $cnx, $type='mysql') {
 		$classe = ucfirst($type).'Connexion';
-		$dir = opendir('./custom/sql_links/classes/entities/connexions');
-		while (($file = readdir($dir)) !== false) {
-		    var_dump($file);
-        }
+
 		if(is_file('./custom/sql_links/classes/entities/connexions/'.$classe.'.php')) {
 			require_once './custom/sql_links/classes/entities/connexions/'.$classe.'.php';
             $classe_to_instenciate = '\\sql_links\\Entities\\connexions\\'.$classe;

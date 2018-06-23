@@ -198,6 +198,7 @@ class Json extends DatabaseFiles implements IRequest
      */
     function tables(): IRequest
     {
+        $this->request_array['type'] = 'tables';
         return $this;
     }
 
@@ -244,6 +245,7 @@ class Json extends DatabaseFiles implements IRequest
      */
     function columns(): IRequest
     {
+        $this->request_array['type'] = 'columns';
     	return $this;
     }
 
@@ -592,10 +594,24 @@ class Json extends DatabaseFiles implements IRequest
 			case self::SHOW		:
 				$directory = opendir($this->directory_database);
 				$tmp = [];
-				while (($dir = readdir($directory)) !== false) {
-					if($dir != '.' && $dir != '..') {
-						$tmp[] = str_replace('.json', '', $dir);
-					}
+				switch ($this->request_array['type']) {
+                    case 'tables':
+                        while (($dir = readdir($directory)) !== false) {
+                            if($dir != '.' && $dir != '..') {
+                                $tmp[] = str_replace('.json', '', $dir);
+                            }
+                        }
+                        break;
+                    case 'columns':
+                        $champs = json_decode(file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json'))->header;
+                        foreach ($champs as $champ) {
+                            $name = $champ->champ;
+                            unset($champ->champ);
+                            $tmp[$name] = $champ;
+                        }
+                        break;
+                    default:
+                        break;
 				}
 
 				return $tmp;
