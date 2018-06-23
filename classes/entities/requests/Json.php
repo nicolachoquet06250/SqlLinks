@@ -509,7 +509,8 @@ class Json extends DatabaseFiles implements IRequest
 				}
 				return true;
 			case self::INSERT	:
-				for($i=0, $max=count($this->request_array['values']); $i<$max; $i++) {
+
+			    foreach ($this->request_array['values'] as $i => $global_value) {
 
 					$all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
 					$all_table = $this->decode($all_table);

@@ -43,7 +43,8 @@ use Exception;
 
 		$jsondb->insert()
 			   ->into('user')
-			   ->values([[
+			   ->values([
+			       [
 			   		'nom' => 'Guignard',
 					'prenom' => 'Jess',
 					'age' => 20,
