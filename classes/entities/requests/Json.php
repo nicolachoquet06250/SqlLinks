@@ -640,9 +640,20 @@ class Json extends DatabaseFiles implements IRequest
 								}
 							}
 						}
+                        $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                        foreach ($tmp as $i => $table_line_content) {
+                            $line_content = (array)$table_line_content;
+                            $tmp[$i] = new $entity($this, true, $line_content);
+                        }
 						return $tmp;
 					}
-					return $all_table->datas;
+					$all_table = $all_table->datas;
+					$entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                    foreach ($all_table as $i => $table_line_content) {
+                        $line_content = (array)$table_line_content;
+                        $all_table[$i] = new $entity($this, true, $line_content);
+					}
+					return $all_table;
 				}
 				else {
 					$datas = $all_table->datas;
@@ -673,6 +684,11 @@ class Json extends DatabaseFiles implements IRequest
 							}
 						}
 					}
+                    $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                    foreach ($tmp as $i => $table_line_content) {
+                        $line_content = (array)$table_line_content;
+                        $tmp[$i] = new $entity($this, true, $line_content);
+                    }
 					return $tmp;
 				}
 			case self::DELETE	:
