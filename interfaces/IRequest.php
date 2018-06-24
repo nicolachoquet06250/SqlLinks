@@ -2,6 +2,8 @@
 
 namespace sql_links\interfaces;
 
+use ormframework\core\setup\ListOf;
+
 interface IRequest {
 	/**
 	 * IRequest constructor.
@@ -195,7 +197,7 @@ interface IRequest {
 	 */
 	function request() ;
 	/**
-	 * @return array|boolean
+	 * @return ListOf|boolean
 	 */
 	function query();
 
@@ -206,14 +208,14 @@ interface IRequest {
 	function values(array $values):IRequest;
 
     /**
-     * @return array|boolean
+     * @return ListOf|boolean
      */
 	function get_last_query_result() ;
 
     /**
-     * @return array
+     * @return ListOf
      */
-	function get_query_result():array ;
+	function get_query_result():ListOf ;
 
     /**
      * @return IRequest

@@ -2,6 +2,7 @@
 
 namespace sql_links\requests;
 
+use ormframework\core\setup\ListOf;
 use sql_links\interfaces\IRequest;
 use \sql_links\factories\RequestConnexion;
 use Exception;
@@ -21,7 +22,8 @@ class Mysql implements IRequest {
 			$write=false,
 			$cnx,
             $query_result,
-            $last_query_result=false;
+            $last_query_result=false,
+            $table;
 
     /**
      * @Description : For like() method
@@ -291,9 +293,11 @@ class Mysql implements IRequest {
 	 * {@inheritdoc}
 	 */
 	function from($table):IRequest {
+	    $this->table = $table;
 	    if(gettype($table) === 'array') {
 	        $tmp = [];
             foreach ($table as $item => $value) {
+                $this->table = $value;
                 if(gettype($item) === 'string') {
                     $tmp[] = "{$item} {$value}";
                 }
@@ -619,9 +623,10 @@ class Mysql implements IRequest {
 		if($this->is_read()) {
 
 		    $req = $mysqli->query($this->request());
-		    $result = [];
+		    $result = new ListOf($this->table);
+		    $entity = '\\ormframework\\custom\\db_context\\'.$this->table;
 		    while ($data = $req->fetch_assoc()) {
-		        $result[] = $data;
+		        $result->append(new $entity($this, true, $data), false);
             }
 
             if($this->query_result === false) {
@@ -632,6 +637,7 @@ class Mysql implements IRequest {
                 $this->query_result = $result;
             }
 
+            $this->last_request = $this->request;
 		    return $this->query_result;
 		}
 		$this->last_request = $this->request;

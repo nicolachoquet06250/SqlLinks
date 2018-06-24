@@ -2,6 +2,7 @@
 
 namespace sql_links\requests;
 
+use ormframework\core\setup\ListOf;
 use \sql_links\Entities\extended\DatabaseFiles;
 use \sql_links\interfaces\IRequest;
 use \sql_links\factories\RequestConnexion;
@@ -451,6 +452,88 @@ class Json extends DatabaseFiles implements IRequest
     function query()
     {
     	switch ($this->request_array['method']) {
+            case self::SELECT	:
+                $all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
+                $all_table = $this->decode($all_table);
+                if($this->request_array['selected'] === '*') {
+                    if(isset($this->request_array['where'])) {
+                        $datas = $all_table->datas;
+                        $tmp = [];
+                        foreach ($this->request_array['where'] as $item => $value) {
+                            foreach ($datas as $data) {
+                                if($data->$item == $value) {
+                                    $obj = new stdClass();
+                                    foreach ($all_table->header as $champ) {
+                                        $champ = $champ->champ;
+                                        if(isset($data->$champ)) {
+                                            $obj->$champ = $data->$champ;
+                                        }
+                                        else {
+                                            throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
+                                        }
+                                    }
+                                    $tmp[] = $obj;
+                                }
+                            }
+                        }
+                        $list_of = new ListOf($this->request_array['table']);
+                        $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                        foreach ($tmp as $i => $table_line_content) {
+                            $line_content = (array)$table_line_content;
+                            $list_of->append(new $entity($this, true, $line_content), false);
+                        }
+                        $tmp = $list_of;
+                        return $tmp;
+                    }
+                    $all_table = $all_table->datas;
+                    $list_of = new ListOf($this->request_array['table']);
+                    $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                    foreach ($all_table as $i => $table_line_content) {
+                        $line_content = (array)$table_line_content;
+                        $list_of->append(new $entity($this, true, $line_content), false);
+                    }
+                    $all_table = $list_of;
+                    return $all_table;
+                }
+                else {
+                    $datas = $all_table->datas;
+                    $tmp = [];
+                    foreach ($this->request_array['where'] as $item => $value) {
+                        foreach ($datas as $data) {
+                            if($data->$item == $value) {
+                                $obj = new stdClass();
+                                foreach ($this->request_array['selected'] as $champ => $alias) {
+                                    if(gettype($champ) === 'string') {
+                                        if(isset($data->$champ)) {
+                                            $obj->$alias = $data->$champ;
+                                        }
+                                        else {
+                                            throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
+                                        }
+                                    }
+                                    else {
+                                        if(isset($data->$alias)) {
+                                            $obj->$alias = $data->$alias;
+                                        }
+                                        else {
+                                            throw new Exception("Le champ `{$alias}` n'existe pas dans la table `{$this->request_array['table']}` !");
+                                        }
+                                    }
+                                }
+                                $tmp[] = $obj;
+                            }
+                        }
+                    }
+                    $list_of = new ListOf($this->request_array['table']);
+                    $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
+                    foreach ($tmp as $i => $table_line_content) {
+                        $line_content = (array)$table_line_content;
+                        $list_of->append(new $entity($this, true, $line_content), false);
+                    }
+                    $tmp = $list_of;
+                    return $tmp;
+                }
+                break;
 			case self::ALTER	:
 				$all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
 				$all_table = $this->decode($all_table);
@@ -509,10 +592,8 @@ class Json extends DatabaseFiles implements IRequest
 				}
 				return true;
 			case self::INSERT	:
-
 			    foreach ($this->request_array['values'] as $i => $global_value) {
-
-					$all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
+                    $all_table = $this->read_file($this->directory_database.'/'.$this->request_array['table'].'.json');
 					$all_table = $this->decode($all_table);
 					$header = $all_table->header;
 					$datas = $all_table->datas;
@@ -616,81 +697,6 @@ class Json extends DatabaseFiles implements IRequest
 				}
 
 				return $tmp;
-			case self::SELECT	:
-				$all_table = file_get_contents($this->directory_database.'/'.$this->request_array['table'].'.json');
-				$all_table = $this->decode($all_table);
-				if($this->request_array['selected'] === '*') {
-					if(isset($this->request_array['where'])) {
-						$datas = $all_table->datas;
-						$tmp = [];
-						foreach ($this->request_array['where'] as $item => $value) {
-							foreach ($datas as $data) {
-								if($data->$item == $value) {
-									$obj = new stdClass();
-									foreach ($all_table->header as $champ) {
-										$champ = $champ->champ;
-										if(isset($data->$champ)) {
-											$obj->$champ = $data->$champ;
-										}
-										else {
-											throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
-										}
-									}
-									$tmp[] = $obj;
-								}
-							}
-						}
-                        $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
-                        foreach ($tmp as $i => $table_line_content) {
-                            $line_content = (array)$table_line_content;
-                            $tmp[$i] = new $entity($this, true, $line_content);
-                        }
-						return $tmp;
-					}
-					$all_table = $all_table->datas;
-					$entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
-                    foreach ($all_table as $i => $table_line_content) {
-                        $line_content = (array)$table_line_content;
-                        $all_table[$i] = new $entity($this, true, $line_content);
-					}
-					return $all_table;
-				}
-				else {
-					$datas = $all_table->datas;
-					$tmp = [];
-					foreach ($this->request_array['where'] as $item => $value) {
-						foreach ($datas as $data) {
-							if($data->$item == $value) {
-								$obj = new stdClass();
-								foreach ($this->request_array['selected'] as $champ => $alias) {
-									if(gettype($champ) === 'string') {
-										if(isset($data->$champ)) {
-											$obj->$alias = $data->$champ;
-										}
-										else {
-											throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
-										}
-									}
-									else {
-										if(isset($data->$alias)) {
-											$obj->$alias = $data->$alias;
-										}
-										else {
-											throw new Exception("Le champ `{$alias}` n'existe pas dans la table `{$this->request_array['table']}` !");
-										}
-									}
-								}
-								$tmp[] = $obj;
-							}
-						}
-					}
-                    $entity = '\\ormframework\\custom\\db_context\\'.$this->request_array['table'];
-                    foreach ($tmp as $i => $table_line_content) {
-                        $line_content = (array)$table_line_content;
-                        $tmp[$i] = new $entity($this, true, $line_content);
-                    }
-					return $tmp;
-				}
 			case self::DELETE	:
                 /**
                  * @var array $all_table
