@@ -432,7 +432,7 @@ class Json extends DatabaseFiles implements IRequest
     /**
      * {@inheritdoc}
      */
-    function last_request(): array
+    function last_request(): ListOf
     {
 		return $this->last_request_array;
     }
@@ -440,7 +440,7 @@ class Json extends DatabaseFiles implements IRequest
     /**
      * {@inheritdoc}
      */
-    function request(): array
+    function request(): ListOf
     {
         return $this->request_array;
     }
@@ -797,7 +797,7 @@ class Json extends DatabaseFiles implements IRequest
     /**
      * {@inheritdoc}
      */
-    function get_query_result(): array
+    function get_query_result():ListOf
     {
         return $this->query_result;
     }

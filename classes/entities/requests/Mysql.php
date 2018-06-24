@@ -654,8 +654,8 @@ class Mysql implements IRequest {
     /**
      * {@inheritdoc}
      */
-    function get_query_result() :array {
-	    return $this->query_result == null ? [] : $this->query_result;
+    function get_query_result() :ListOf {
+	    return $this->query_result == null ? new ListOf($this->table): $this->query_result;
     }
 
 	/**
