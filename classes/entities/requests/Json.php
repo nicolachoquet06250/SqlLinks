@@ -12,9 +12,9 @@ use Exception;
 class Json extends DatabaseFiles implements IRequest
 {
 	private	$directory_database,
-			$request_array = [],
-			$last_request_array = [],
-			$query_result = [],
+			$request_array,
+			$last_request_array,
+			$query_result,
 			$last_query_result = false;
 
 	private $read = false,
