@@ -459,21 +459,27 @@ class Json extends DatabaseFiles implements IRequest
                     if(isset($this->request_array['where'])) {
                         $datas = $all_table->datas;
                         $tmp = [];
-                        foreach ($this->request_array['where'] as $item => $value) {
-                            foreach ($datas as $data) {
-                                if($data->$item == $value) {
-                                    $obj = new stdClass();
-                                    foreach ($all_table->header as $champ) {
-                                        $champ = $champ->champ;
-                                        if(isset($data->$champ)) {
-                                            $obj->$champ = $data->$champ;
-                                        }
-                                        else {
-                                            throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
-                                        }
+                        foreach ($datas as $data) {
+                            $ok = true;
+                            foreach ($this->request_array['where'] as $item => $value) {
+                                foreach ($data as $key => $val) {
+                                    if($key === $item && $value !== $val) {
+                                        $ok = false;
                                     }
-                                    $tmp[] = $obj;
                                 }
+                            }
+                            if($ok) {
+                                $obj = new stdClass();
+                                foreach ($all_table->header as $champ) {
+                                    $champ = $champ->champ;
+                                    if(isset($data->$champ)) {
+                                        $obj->$champ = $data->$champ;
+                                    }
+                                    else {
+                                        throw new Exception("Le champ `{$champ}` n'existe pas dans la table `{$this->request_array['table']}` !");
+                                    }
+                                }
+                                $tmp[] = $obj;
                             }
                         }
                         $list_of = new ListOf($this->request_array['table']);
