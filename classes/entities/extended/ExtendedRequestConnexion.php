@@ -27,7 +27,7 @@ class ExtendedRequestConnexion implements IRequestConnexion {
 			}
 			else {
 				if($arguments) {
-					$this->$name = $arguments;
+					$this->$name = $arguments[0];
 				}
 				return $this->$name;
 			}

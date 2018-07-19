@@ -9,7 +9,7 @@ class JsonConnexion extends ExtendedRequestConnexion
     public function __construct(array $idents)
     {
         if(count($idents) > 1) {
-            $this->database($idents['path_to_database'].'/'.$idents['database']);
+            $this->database = $idents['path_to_database'].'/'.$idents['database'];
         }
         else {
             parent::__construct($idents);

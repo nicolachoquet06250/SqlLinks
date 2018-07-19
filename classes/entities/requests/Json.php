@@ -56,7 +56,7 @@ class Json extends DatabaseFiles implements IRequest
      * @throws Exception
      */
     public function __construct(RequestConnexion $connexion) {
-		$this->directory_database = $connexion->database()[0];
+		$this->directory_database = $connexion->database();
 
 		if(!is_dir($this->directory_database)):
 			mkdir($this->directory_database,0777, true);
@@ -576,7 +576,7 @@ class Json extends DatabaseFiles implements IRequest
 				return true;
 			case self::CREATE	:
 				if($this->request_array['selected'] === self::TABLE) {
-					if (!file_exists($this->directory_database.'/'.$this->request_array['name_created'].'.json')) {
+				    if (!file_exists($this->directory_database.'/'.$this->request_array['name_created'].'.json')) {
 						$f = fopen($this->directory_database.'/'.$this->request_array['name_created'].'.json', 'w+');
 						$tmp = [];
 						foreach ($this->request_array['set'] as $item => $value) {

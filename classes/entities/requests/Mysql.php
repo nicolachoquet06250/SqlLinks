@@ -95,7 +95,7 @@ class Mysql implements IRequest {
      * @throws Exception
      */
 	public function __construct(RequestConnexion $connexion) {
-	    if(get_class($connexion) === 'MysqlConnexion') {
+	    if($connexion->get_class() === 'MysqlConnexion') {
             $this->cnx = $connexion;
             if (class_exists('mysqli')) {
                 $is_debug = $connexion->is_debug();
@@ -355,7 +355,7 @@ class Mysql implements IRequest {
                 $tmp[] = "`{$item}`={$value}";
             }
             else {
-                $tmp[] = "`{$item}` {$value}";
+                $tmp[] = "`{$item}` {$value['type']}";
             }
         }
         if (!strstr($this->request(), 'CREATE '.self::TABLE)) {

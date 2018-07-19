@@ -5,7 +5,7 @@ use \Exception;
 use sql_links\interfaces\IRequestConnexion;
 
 class RequestConnexion {
-	private $cnx, $debug=false;
+	private $cnx, $debug=false, $class;
 
 	/**
 	 * RequestConnexion constructor.
@@ -16,7 +16,7 @@ class RequestConnexion {
 	 */
 	function __construct(array $cnx, $type='mysql') {
 		$classe = ucfirst($type).'Connexion';
-
+        $this->class = $classe;
 		if(is_file('./custom/sql_links/classes/entities/connexions/'.$classe.'.php')) {
 			require_once './custom/sql_links/classes/entities/connexions/'.$classe.'.php';
             $classe_to_instenciate = '\\sql_links\\Entities\\connexions\\'.$classe;
@@ -51,6 +51,7 @@ class RequestConnexion {
         }
         else {
 	        $this->$name();
+	        return null;
         }
 	}
 
@@ -60,5 +61,8 @@ class RequestConnexion {
     }
     public function is_debug() {
 	    return $this->debug;
+    }
+    public function get_class() {
+	    return $this->class;
     }
 }
